@@ -33,7 +33,10 @@ jobs:
           # compose.yml을 레포에서 서버 배포 디렉토리로 복사
           cp "${GITHUB_WORKSPACE}/compose.yml" ./compose.yml
 
-          # .env 생성 (들여쓰기 절대 금지)
+          # APP_IMAGE를 자동 생성
+          IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}:latest"
+
+          # .env 생성
           cat > .env <<EOF
           APP_PORT=${{ secrets.APP_PORT }}
           SPRING_PROFILES_ACTIVE=${{ secrets.SPRING_PROFILES_ACTIVE }}
@@ -49,8 +52,8 @@ jobs:
   
           SPRING_DATA_REDIS_HOST=${{ secrets.SPRING_DATA_REDIS_HOST }}
           SPRING_DATA_REDIS_PORT=${{ secrets.SPRING_DATA_REDIS_PORT }}
-  
-          APP_IMAGE=${{ secrets.APP_IMAGE }}
+          
+          APP_IMAGE=$IMAGE
           EOF
 
           chmod 600 .env
