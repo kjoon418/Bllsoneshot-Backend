@@ -30,5 +30,7 @@ jobs:
       - name: Docker build (no push)
         run: docker build -t pr-check:local .
 
-      - name: Validate docker-compose.yml (no run)
-        run: docker compose -f docker-compose.yml config
+      - name: Validate docker-compose.yml (no run, warnings ok)
+        run: |
+          echo "APP_IMAGE=hello-world:latest" > .env
+          docker compose -f docker-compose.yml --env-file .env config
