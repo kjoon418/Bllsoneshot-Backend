@@ -1,0 +1,60 @@
+name: deploy-on-selfhosted
+
+on:
+  workflow_run:
+    workflows: ["build-and-push-image"]
+    types: [completed]
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Write .env, copy compose.yml, deploy
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sudo mkdir -p /opt/bllsoneshot
+          sudo chown -R "$USER:$USER" /opt/bllsoneshot
+          cd /opt/bllsoneshot
+
+          # compose.yml을 레포에서 서버 배포 디렉토리로 복사
+          cp "${GITHUB_WORKSPACE}/compose.yml" ./compose.yml
+
+          # .env 생성 (들여쓰기 절대 금지)
+          cat > .env <<EOF
+          APP_PORT=${{ secrets.APP_PORT }}
+          SPRING_PROFILES_ACTIVE=${{ secrets.SPRING_PROFILES_ACTIVE }}
+  
+          MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}
+          MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}
+          MYSQL_USER=${{ secrets.MYSQL_USER }}
+          MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}
+  
+          SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }}
+          SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }}
+          SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}
+  
+          SPRING_DATA_REDIS_HOST=${{ secrets.SPRING_DATA_REDIS_HOST }}
+          SPRING_DATA_REDIS_PORT=${{ secrets.SPRING_DATA_REDIS_PORT }}
+  
+          APP_IMAGE=${{ secrets.APP_IMAGE }}
+          EOF
+
+          chmod 600 .env
+  
+          docker compose pull
+          docker compose up -d
+          docker compose ps
