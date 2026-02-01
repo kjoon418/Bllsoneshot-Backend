@@ -21,7 +21,7 @@ jobs:
       - name: Login to GHCR
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
-      - name: Write .env, copy compose.yml, deploy
+      - name: Write .env, copy docker-compose.yml, deploy
         shell: bash
         run: |
           set -euo pipefail
@@ -30,34 +30,33 @@ jobs:
           sudo chown -R "$USER:$USER" /opt/bllsoneshot
           cd /opt/bllsoneshot
 
-          # compose.yml을 레포에서 서버 배포 디렉토리로 복사
-          cp "${GITHUB_WORKSPACE}/compose.yml" ./compose.yml
+          cp "${GITHUB_WORKSPACE}/docker-compose.yml" ./docker-compose.yml
 
-          # APP_IMAGE를 자동 생성
-          IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}:latest"
+          # latest 기준 이미지
+          IMAGE="ghcr.io/$(echo "$GITHUB_REPOSITORY" | tr '[:upper:]' '[:lower:]'):latest"
 
-          # .env 생성
           cat > .env <<EOF
           APP_PORT=${{ secrets.APP_PORT }}
           SPRING_PROFILES_ACTIVE=${{ secrets.SPRING_PROFILES_ACTIVE }}
-  
+
           MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}
           MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}
           MYSQL_USER=${{ secrets.MYSQL_USER }}
           MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}
-  
+
           SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }}
           SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }}
           SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}
-  
+
           SPRING_DATA_REDIS_HOST=${{ secrets.SPRING_DATA_REDIS_HOST }}
           SPRING_DATA_REDIS_PORT=${{ secrets.SPRING_DATA_REDIS_PORT }}
-          
+
           APP_IMAGE=$IMAGE
           EOF
 
           chmod 600 .env
-  
+
           docker compose pull
-          docker compose up -d
+          docker compose up -d --pull always --remove-orphans
           docker compose ps
+          docker compose logs --no-color --tail=80
