@@ -3,6 +3,7 @@ package goodspace.bllsoneshot.entity.assignment
 import goodspace.bllsoneshot.entity.BaseEntity
 import goodspace.bllsoneshot.entity.user.User
 import goodspace.bllsoneshot.entity.user.UserRole
+import goodspace.bllsoneshot.global.exception.ExceptionMessage.CANNOT_COMPLETE_WITHOUT_ACTUAL_MINUTES
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
@@ -52,7 +53,14 @@ class Task(
     val generalComment: GeneralComment? = null
 
     @Column(nullable = false)
-    val completed: Boolean = false
+    var completed: Boolean = false
+        set(value) {
+            if (value) {
+                check(actualMinutes != null) { CANNOT_COMPLETE_WITHOUT_ACTUAL_MINUTES.message }
+            }
+
+            field = value
+        }
 
     fun hasWorkSheet(): Boolean =
         worksheets.isNotEmpty()

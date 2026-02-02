@@ -6,12 +6,12 @@ import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 
 @RestControllerAdvice
-class AuthExceptionHandler {
+class ExceptionHandler {
 
-    @ExceptionHandler(IllegalArgumentException::class)
-    fun handleInvalidCredentials(exception: IllegalArgumentException): ResponseEntity<String> {
+    @ExceptionHandler(IllegalArgumentException::class, IllegalStateException::class)
+    fun handleBadRequest(exception: Exception): ResponseEntity<String> {
         return ResponseEntity
-            .status(HttpStatus.UNAUTHORIZED)
+            .status(HttpStatus.BAD_REQUEST)
             .body(exception.message)
     }
 }
