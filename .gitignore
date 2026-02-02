@@ -41,3 +41,6 @@ out/
 
 ### deploy ###
 .env
+
+# Firebase Service Account Key
+firebase-service-account.json
