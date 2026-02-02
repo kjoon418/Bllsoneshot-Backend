@@ -20,9 +20,6 @@ class Task(
     @JoinColumn(nullable = false)
     val mentee: User,
 
-    @OneToOne(fetch = FetchType.LAZY)
-    val generalComment: GeneralComment? = null,
-
     @Column(nullable = false)
     val name: String,
     // TODO: 마감일, 생성일이 동시에 null일 수 없도록 검증
@@ -31,8 +28,6 @@ class Task(
     @Column(nullable = false)
     val goalMinutes: Int,
     val actualMinutes: Int?,
-    @Column(nullable = false)
-    val completed: Boolean,
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -52,6 +47,12 @@ class Task(
 
     @OneToMany(mappedBy = "task", fetch = FetchType.LAZY)
     val comments: MutableList<Comment> = mutableListOf()
+
+    @OneToOne(fetch = FetchType.LAZY)
+    val generalComment: GeneralComment? = null
+
+    @Column(nullable = false)
+    val completed: Boolean = false
 
     fun hasWorkSheet(): Boolean =
         worksheets.isNotEmpty()
