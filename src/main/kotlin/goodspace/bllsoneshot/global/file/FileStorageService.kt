@@ -1,8 +1,10 @@
 package goodspace.bllsoneshot.global.file
 
 import goodspace.bllsoneshot.entity.assignment.File
+import goodspace.bllsoneshot.global.file.dto.FileDownloadResponse
 import goodspace.bllsoneshot.global.file.dto.FileUploadResponse
 import goodspace.bllsoneshot.repository.file.FileRepository
+import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -10,16 +12,17 @@ import org.springframework.web.multipart.MultipartFile
 import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest
+import software.amazon.awssdk.services.s3.model.GetObjectRequest
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
-import java.util.UUID
-import mu.KotlinLogging
-
-
+import software.amazon.awssdk.services.s3.presigner.S3Presigner
+import java.time.Duration
+import java.util.*
 
 @Service
 class FileStorageService(
     private val s3Client: S3Client,
     private val fileRepository: FileRepository,
+    private val s3Presigner: S3Presigner,
     @Value("\${aws.s3.bucket}") private val bucket: String,
     @Value("\${aws.s3.cdn-url}") private val cdnUrl: String
 ) {
@@ -32,7 +35,7 @@ class FileStorageService(
     @Transactional
     fun uploadFile(file: MultipartFile, folder: String): FileUploadResponse {
         validateFile(file)
-        require(folder.isNotBlank()) { "폴더 이름은 비어 있을 수 없습니다"}
+        require(folder.isNotBlank()) { "폴더 이름은 비어 있을 수 없습니다" }
 
         val uploaded = uploadToS3(file, folder)
 
@@ -63,6 +66,28 @@ class FileStorageService(
         // TODO: 삭제 순서로 인해 s3에 고아 객체가 남을 수 있는 문제 고민
         fileRepository.delete(file)
         deleteFromS3(file.objectKey)
+    }
+
+    @Transactional(readOnly = true)
+    fun getDownloadUrl(fileId: Long): FileDownloadResponse {
+        val file = fileRepository.findById(fileId)
+            .orElseThrow { IllegalArgumentException("파일을 찾을 수 없습니다") }
+
+        val request = GetObjectRequest.builder()
+            .bucket(bucket)
+            .key(file.objectKey)
+            .build()
+
+        // 다운로드 가능한 임시 URL생성 (10분만 유효)
+        val presigned = s3Presigner.presignGetObject {
+            it.getObjectRequest(request)
+            it.signatureDuration(Duration.ofMinutes(10))
+        }
+
+        return FileDownloadResponse(
+            fileId = fileId,
+            url = presigned.url().toString()
+        )
     }
 
     private fun validateFile(file: MultipartFile) {
@@ -117,6 +142,7 @@ class FileStorageService(
     }
 }
 
+// 코틀린은 특정 역할의 보조 역할을 하는 클래스를 정의하는 것을 권장한다.
 data class UploadedFile(
     val objectKey: String,
     val fileName: String,
