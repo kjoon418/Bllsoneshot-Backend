@@ -48,5 +48,14 @@ class Task(
     val columnLinks: MutableList<ColumnLink> = mutableListOf()
 
     @OneToMany(mappedBy = "task", fetch = FetchType.LAZY)
+    val proofShots: MutableList<ProofShot> = mutableListOf()
+
+    @OneToMany(mappedBy = "task", fetch = FetchType.LAZY)
     val comments: MutableList<Comment> = mutableListOf()
+
+    fun hasWorkSheet(): Boolean =
+        worksheets.isNotEmpty()
+
+    fun hasProofShot(): Boolean =
+        proofShots.isNotEmpty()
 }
