@@ -12,6 +12,9 @@ import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
 import java.util.UUID
+import mu.KotlinLogging
+
+
 
 @Service
 class FileStorageService(
@@ -20,9 +23,18 @@ class FileStorageService(
     @Value("\${aws.s3.bucket}") private val bucket: String,
     @Value("\${aws.s3.cdn-url}") private val cdnUrl: String
 ) {
+    companion object {
+        private val ALLOWED_TYPES = setOf("image/png", "image/jpeg", "application/pdf")
+        private const val MAX_BYTES = 10L * 1024 * 1024 // 10MB
+        private val logger = KotlinLogging.logger {}
+    }
+
     @Transactional
-    fun uploadFile(file: MultipartFile): FileUploadResponse {
-        val uploaded = uploadToS3(file)
+    fun uploadFile(file: MultipartFile, folder: String): FileUploadResponse {
+        validateFile(file)
+        require(folder.isNotBlank()) { "폴더 이름은 비어 있을 수 없습니다"}
+
+        val uploaded = uploadToS3(file, folder)
 
         try {
             val savedFile = fileRepository.save(
@@ -42,21 +54,29 @@ class FileStorageService(
         }
     }
 
+
     @Transactional
     fun deleteFile(fileId: Long) {
         val file = fileRepository.findById(fileId)
             .orElseThrow { IllegalArgumentException("파일을 찾을 수 없습니다") }
 
+        // TODO: 삭제 순서로 인해 s3에 고아 객체가 남을 수 있는 문제 고민
         fileRepository.delete(file)
         deleteFromS3(file.objectKey)
     }
 
-    private fun uploadToS3(file: MultipartFile): UploadedFile {
-        val objectKey = "worksheets/${UUID.randomUUID()}_${file.originalFilename}"
+    private fun validateFile(file: MultipartFile) {
+        require(!file.isEmpty) { "파일이 비어 있습니다." }
+        require(file.contentType in ALLOWED_TYPES) { "지원하지 않는 파일 타입입니다." }
+        require(file.size <= MAX_BYTES) { "파일 용량이 너무 큽니다." }
+    }
+
+    private fun uploadToS3(file: MultipartFile, folder: String): UploadedFile {
+        val objectKey = buildObjectKey(file, folder)
         val request = PutObjectRequest.builder()
             .bucket(bucket)
             .key(objectKey)
-            .contentType(file.contentType ?: "application/octet-stream")
+            .contentType(file.contentType ?: "application/octet-stream") // null 일 땐 바이너리 기본타입
             .contentLength(file.size)
             .build()
 
@@ -71,13 +91,29 @@ class FileStorageService(
         )
     }
 
-    private fun deleteFromS3(objectKey: String) {
-        val request = DeleteObjectRequest.builder()
-            .bucket(bucket)
-            .key(objectKey)
-            .build()
+    private fun buildObjectKey(file: MultipartFile, folder: String): String {
+        // 메서드 체이닝 이용한 확장자 추출, ?. 사용시 null이면 바로 null 반환, null 아니면 메서드 체이닝 지속
+        val extension = file.originalFilename
+            ?.substringAfterLast('.', "")
+            ?.lowercase()
+            ?.takeIf { it.isNotBlank() }
 
-        s3Client.deleteObject(request)
+        val name = UUID.randomUUID().toString()
+        val safeFolder = folder.trim('/')
+
+        return if (extension == null) "$safeFolder/$name" else "$safeFolder/$name.$extension"
+    }
+
+    private fun deleteFromS3(objectKey: String) {
+        try {
+            val request = DeleteObjectRequest.builder()
+                .bucket(bucket)
+                .key(objectKey)
+                .build()
+            s3Client.deleteObject(request)
+        } catch (e: Exception) {
+            logger.warn("S3 delete failed. key=$objectKey", e)
+        }
     }
 }
 
