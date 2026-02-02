@@ -6,7 +6,9 @@ import jakarta.persistence.*
 @Table(name = "users")
 class User(
     @ManyToOne(fetch = FetchType.LAZY)
-    val mentor: User? = null
+    val mentor: User? = null,
+
+    val role: UserRole
 ) {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
