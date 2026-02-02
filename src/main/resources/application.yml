@@ -1,5 +1,15 @@
 server:
   port: 8080
+  servlet:
+    context-path: /api
+
+app:
+  auth:
+    refresh-token-cookie:
+      name: refreshToken
+      path: /api/auth
+      secure: ${REFRESH_TOKEN_COOKIE_SECURE:false}
+      same-site: lax
 
 spring:
   application:
@@ -38,4 +48,3 @@ init:
 logging:
   level:
     org.hibernate.SQL: debug
-

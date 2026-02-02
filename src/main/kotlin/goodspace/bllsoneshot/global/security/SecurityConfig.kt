@@ -28,11 +28,8 @@ class SecurityConfig(
             .authorizeHttpRequests { auth ->
                 auth.requestMatchers("/swagger-ui/**").permitAll() // swagger
                     .requestMatchers("/v3/api-docs/**").permitAll() // SpringDoc
-                    .requestMatchers("/email/**").permitAll()
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // 프리플라이트 허용
-                    .requestMatchers("/api/auth/**").permitAll() // 인증 인가
-                    .requestMatchers("/static/**", "/nicepay-test.html").permitAll()
-                    .requestMatchers("/payment/**").permitAll()
+                    .requestMatchers("/auth/**").permitAll() // 인증 인가
                     .requestMatchers("/mentor/**").hasRole("ROLE_MENTOR") // 멘토 전용 기능
                     .anyRequest().authenticated()
             }
