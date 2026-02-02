@@ -1,15 +1,12 @@
-package goodspace.bllsoneshot.entity
+package goodspace.bllsoneshot.entity.assignment
 
 import jakarta.persistence.*
 
 @Entity
-class FeedbackAnnotation(
+class Feedback(
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false)
-    val feedback: Feedback,
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false)
-    val proofShot: ProofShot
+    val assignment: Assignment
 ) {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

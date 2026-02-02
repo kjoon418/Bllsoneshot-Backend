@@ -1,0 +1,59 @@
+package goodspace.bllsoneshot.global.security
+
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpMethod
+import org.springframework.security.config.annotation.web.builders.HttpSecurity
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
+import org.springframework.security.config.http.SessionCreationPolicy
+import org.springframework.security.web.SecurityFilterChain
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
+import org.springframework.web.cors.CorsConfiguration
+import org.springframework.web.cors.CorsConfigurationSource
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource
+
+@Configuration
+@EnableWebSecurity
+class SecurityConfig(
+    private val tokenProvider: TokenProvider
+) {
+    @Bean
+    fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
+        return http
+            .httpBasic { it.disable() }
+            .csrf { it.disable() }
+            .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
+            .formLogin { it.disable() }
+            .logout { it.disable() }
+            .authorizeHttpRequests { auth ->
+                auth.requestMatchers("/swagger-ui/**").permitAll() // swagger
+                    .requestMatchers("/v3/api-docs/**").permitAll() // SpringDoc
+                    .requestMatchers("/email/**").permitAll()
+                    .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // 프리플라이트 허용
+                    .requestMatchers("/api/auth/**").permitAll() // 인증 인가
+                    .requestMatchers("/static/**", "/nicepay-test.html").permitAll()
+                    .requestMatchers("/payment/**").permitAll()
+                    .requestMatchers("/mentor/**").hasRole("ROLE_MENTOR") // 멘토 전용 기능
+                    .anyRequest().authenticated()
+            }
+            .cors { it.configurationSource(configurationSource()) }
+            .addFilterBefore(JwtFilter(tokenProvider), UsernamePasswordAuthenticationFilter::class.java)
+            .build()
+    }
+
+    @Bean
+    fun configurationSource(): CorsConfigurationSource {
+        val config = CorsConfiguration().apply {
+            // TODO: 웹 배포 후 웹의 origin으로 구체화
+            allowedOriginPatterns = listOf("*")
+            allowedMethods = listOf("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
+            allowedHeaders = listOf("*")
+            exposedHeaders = listOf("Access-Control-Allow-Credentials", "Authorization", "Set-Cookie")
+            allowCredentials = true
+            maxAge = 3600
+        }
+        return UrlBasedCorsConfigurationSource().also {
+            it.registerCorsConfiguration("/**", config)
+        }
+    }
+}
