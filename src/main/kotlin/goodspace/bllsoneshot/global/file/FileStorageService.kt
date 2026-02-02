@@ -21,7 +21,7 @@ class FileStorageService(
     @Value("\${aws.s3.cdn-url}") private val cdnUrl: String
 ) {
     @Transactional
-    fun uploadWorksheet(file: MultipartFile): FileUploadResponse {
+    fun uploadFile(file: MultipartFile): FileUploadResponse {
         val uploaded = uploadToS3(file)
 
         try {
