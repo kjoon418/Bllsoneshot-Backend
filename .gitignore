@@ -41,6 +41,3 @@ out/
 
 ### deploy ###
 .env
-
-### Firebase ###
-firebase-service-account.json

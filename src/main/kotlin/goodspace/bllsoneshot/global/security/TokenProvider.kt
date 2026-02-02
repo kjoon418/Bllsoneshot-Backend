@@ -29,6 +29,8 @@ class TokenProvider(
 
     private val key: Key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret))
 
+    fun getRefreshTokenValiditySeconds(): Long = validityTime * 24 / 1000
+
     fun createToken(id: Long, tokenType: TokenType, role: UserRole): String {
         val now = Date()
         val expiresAt = when (tokenType) {
@@ -106,7 +108,7 @@ class TokenProvider(
                 .body
         } catch (e: ExpiredJwtException) {
             e.claims
-        } catch (e: SignatureException) {
+        } catch (_: SignatureException) {
             throw IllegalArgumentException("토큰 복호화 실패: 부적절한 토큰입니다.")
         }
     }

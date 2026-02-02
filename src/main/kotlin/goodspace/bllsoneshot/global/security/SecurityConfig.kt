@@ -33,7 +33,7 @@ class SecurityConfig(
                     .requestMatchers("/api/auth/**").permitAll() // 인증 인가
                     .requestMatchers("/static/**", "/nicepay-test.html").permitAll()
                     .requestMatchers("/payment/**").permitAll()
-                    .requestMatchers("/mentor/**").hasRole("MENTOR") // 멘토 전용 기능
+                    .requestMatchers("/mentor/**").hasRole("ROLE_MENTOR") // 멘토 전용 기능
                     .anyRequest().authenticated()
             }
             .cors { it.configurationSource(configurationSource()) }
