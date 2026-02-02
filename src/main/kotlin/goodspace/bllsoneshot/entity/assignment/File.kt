@@ -16,4 +16,6 @@ class File(
     val byteSize: Long,
     @Column(nullable = false)
     val bucketName: String,
+    @Column(nullable = false)
+    val objectKey: String
 ) : BaseEntity()
