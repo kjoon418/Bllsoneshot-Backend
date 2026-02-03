@@ -71,6 +71,15 @@ class Task(
     fun hasFeedback(): Boolean =
         comments.any { it.isFeedback && it.isRegistered }
 
+    fun hasReadAllFeedbacks(): Boolean {
+        if (!hasFeedback()) {
+            return true
+        }
+
+        return comments.filter { it.isFeedback && it.isRegistered }
+            .all { it.isRead }
+    }
+
     fun markFeedbackAsRead() {
         comments.forEach { it.markAsRead() }
     }

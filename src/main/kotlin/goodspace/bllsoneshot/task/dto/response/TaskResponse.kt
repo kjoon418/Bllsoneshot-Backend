@@ -15,6 +15,8 @@ data class TaskResponse(
     val actualMinutes: Int?,
 
     val completed: Boolean,
+    val readFeedback: Boolean,
+    val hasFeedback: Boolean,
     val hasWorksheet: Boolean,
     val hasProofShot: Boolean
 )

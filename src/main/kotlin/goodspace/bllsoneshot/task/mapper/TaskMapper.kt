@@ -20,6 +20,8 @@ class TaskMapper {
             actualMinutes = task.actualMinutes,
 
             completed = task.completed,
+            readFeedback = task.hasReadAllFeedbacks(),
+            hasFeedback = task.hasFeedback(),
             hasWorksheet = task.hasWorkSheet(),
             hasProofShot = task.hasProofShot()
         )
