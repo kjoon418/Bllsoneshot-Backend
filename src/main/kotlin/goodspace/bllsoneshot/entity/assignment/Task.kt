@@ -22,22 +22,25 @@ class Task(
     @JoinColumn(nullable = false)
     val mentee: User,
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    val name: String,
-    // TODO: 마감일, 생성일이 동시에 null일 수 없도록 검증
+    val subject: Subject,
+
     val startDate: LocalDate?,
     val dueDate: LocalDate?,
+
+    @Column(nullable = false)
+    val name: String,
+
     @Column(nullable = false)
     val goalMinutes: Int,
     val actualMinutes: Int?,
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    val subject: Subject,
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     val createdBy: UserRole
 ) : BaseEntity() {
+    // Task 저장시 연관 엔티티도 함게 저장, 삭제되도록 cascade 및 orphanRemoval 설정
     @OneToMany(mappedBy = "task", fetch = FetchType.LAZY, cascade = [CascadeType.PERSIST, CascadeType.REMOVE], orphanRemoval = true)
     val worksheets: MutableList<Worksheet> = mutableListOf()
 

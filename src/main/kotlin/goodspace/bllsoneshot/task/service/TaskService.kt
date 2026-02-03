@@ -1,27 +1,20 @@
 package goodspace.bllsoneshot.task.service
 
-import goodspace.bllsoneshot.entity.assignment.Comment
-import goodspace.bllsoneshot.entity.assignment.CommentAnnotation
-import goodspace.bllsoneshot.entity.assignment.CommentType
-import goodspace.bllsoneshot.entity.assignment.ProofShot
-import goodspace.bllsoneshot.entity.assignment.RegisterStatus
-import goodspace.bllsoneshot.entity.assignment.Task
+import goodspace.bllsoneshot.entity.assignment.*
+import goodspace.bllsoneshot.entity.user.User
 import goodspace.bllsoneshot.entity.user.UserRole
 import goodspace.bllsoneshot.global.exception.ExceptionMessage.*
 import goodspace.bllsoneshot.repository.file.FileRepository
 import goodspace.bllsoneshot.repository.task.TaskRepository
 import goodspace.bllsoneshot.repository.user.UserRepository
-import goodspace.bllsoneshot.task.dto.request.MenteeTaskCreateRequest
-import goodspace.bllsoneshot.task.dto.request.ProofShotRequest
-import goodspace.bllsoneshot.task.dto.request.TaskCompleteUpdateRequest
-import goodspace.bllsoneshot.task.dto.request.TaskSubmitRequest
-import goodspace.bllsoneshot.task.dto.response.feedback.TaskFeedbackResponse
+import goodspace.bllsoneshot.task.dto.request.*
 import goodspace.bllsoneshot.task.dto.response.TaskResponse
+import goodspace.bllsoneshot.task.dto.response.feedback.TaskFeedbackResponse
 import goodspace.bllsoneshot.task.mapper.TaskFeedbackMapper
 import goodspace.bllsoneshot.task.mapper.TaskMapper
-import java.time.LocalDate
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
 
 @Service
 class TaskService(
@@ -42,7 +35,50 @@ class TaskService(
     }
 
     @Transactional
-    fun createTask(userId: Long, request: MenteeTaskCreateRequest): TaskResponse {
+    fun createTaskByMentor(mentorId: Long, request: MentorTaskCreateRequest): TaskResponse {
+        val mentee: User = userRepository.findById(request.menteeId)
+            .orElseThrow() { IllegalArgumentException(USER_NOT_FOUND.message) }
+
+        validateDate(request.startDate, request.dueDate)
+
+        val task = Task(
+            mentee = mentee,
+            subject = request.subject,
+            startDate = request.startDate,
+            dueDate = request.dueDate,
+            name = request.taskName,
+            goalMinutes = request.goalMinutes,
+            actualMinutes = null,
+            createdBy = UserRole.ROLE_MENTOR
+        )
+        task.worksheets.addAll(
+            request.worksheets
+                // fileId가 null인 항목은 제거
+                .mapNotNull { it.fileId }
+                // 각 fileId로 Worksheet 엔티티 생성
+                .map { fileId ->
+                    Worksheet(
+                        task,
+                        fileRepository.findById(fileId)
+                            .orElseThrow({ IllegalArgumentException(FILE_NOT_FOUND.message) })
+                    )
+                }
+        )
+        task.columnLinks.addAll(
+            request.columnLinks
+                // link가 null이거나 빈 문자열인 항목은 제거
+                .mapNotNull { it.link?.takeIf { link -> link.isNotBlank() } }
+                // 각 link로 ColumnLink 엔티티 생성
+                .map { link -> ColumnLink(task, link) }
+        )
+
+        val savedTask = taskRepository.save(task)
+
+        return taskMapper.map(savedTask)
+    }
+
+    @Transactional
+    fun createTaskByMentee(userId: Long, request: MenteeTaskCreateRequest): TaskResponse {
         val mentee = userRepository.findById(userId)
             .orElseThrow { IllegalArgumentException(USER_NOT_FOUND.message) }
 
@@ -100,6 +136,17 @@ class TaskService(
         validateTaskOwnership(task, userId)
 
         task.completed = request.completed
+    }
+
+    private fun validateDate(startDate: LocalDate?, dueDate: LocalDate?) {
+        require(!(startDate == null && dueDate == null)) {
+            START_OR_END_DATE_REQUIRED.message
+        }
+        if (startDate != null && dueDate != null) {
+            require(!startDate.isAfter(dueDate)) {
+                DATE_INVALID.message
+            }
+        }
     }
 
     private fun removeExistingProofShotsAndComments(task: Task) {

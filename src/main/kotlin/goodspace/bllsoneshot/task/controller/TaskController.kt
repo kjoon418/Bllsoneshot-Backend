@@ -3,6 +3,7 @@ package goodspace.bllsoneshot.task.controller
 import goodspace.bllsoneshot.global.response.NO_CONTENT
 import goodspace.bllsoneshot.global.security.userId
 import goodspace.bllsoneshot.task.dto.request.MenteeTaskCreateRequest
+import goodspace.bllsoneshot.task.dto.request.MentorTaskCreateRequest
 import goodspace.bllsoneshot.task.dto.request.TaskCompleteUpdateRequest
 import goodspace.bllsoneshot.task.dto.request.TaskSubmitRequest
 import goodspace.bllsoneshot.task.dto.response.feedback.TaskFeedbackResponse
@@ -65,6 +66,24 @@ class TaskController(
         return ResponseEntity.ok(response)
     }
 
+    @PostMapping("/mentor")
+    @Operation(
+        summary = "할 일 추가(멘토)",
+        description = """
+            멘토 권한으로 할 일을 추가합니다.
+            생성된 할 일에 대한 정보를 응답합니다.
+        """
+    )
+    fun addTaskByMentor(
+        principal: Principal,
+        @Valid @RequestBody request: MentorTaskCreateRequest
+    ): ResponseEntity<TaskResponse> {
+        val userId = principal.userId
+
+        val response = taskService.createTaskByMentor(userId, request)
+
+        return ResponseEntity.ok(response)
+    }
     @PostMapping("/mentee")
     @Operation(
         summary = "할 일 추가(멘티)",
@@ -73,13 +92,13 @@ class TaskController(
             생성된 할 일에 대한 정보를 응답합니다.
         """
     )
-    fun addTask(
+    fun addTaskByMentee(
         principal: Principal,
         @Valid @RequestBody request: MenteeTaskCreateRequest
     ): ResponseEntity<TaskResponse> {
         val userId = principal.userId
 
-        val response = taskService.createTask(userId, request)
+        val response = taskService.createTaskByMentee(userId, request)
 
         return ResponseEntity.ok(response)
     }
