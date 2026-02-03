@@ -18,7 +18,7 @@ class SwaggerConfig {
             .servers(
                 listOf(
                     Server().url("https://bllsoneshot.xyz/api").description("배포 서버 URL 1"),
-                    Server().url("http://localhost:8080").description("로컬")
+                    Server().url("http://localhost:8080/api").description("로컬")
                 )
             )
             .addSecurityItem(SecurityRequirement().addList("Bearer Authentication"))

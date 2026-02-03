@@ -11,8 +11,8 @@ class CommentAnnotationMapper {
         return CommentAnnotationResponse(
             annotationId = annotation.id!!,
             annotationNumber = annotation.number,
-            xPercent = annotation.xPercent,
-            yPercent = annotation.yPercent
+            percentX = annotation.percentX,
+            percentY = annotation.percentY
         )
     }
 }

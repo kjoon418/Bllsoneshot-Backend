@@ -4,6 +4,6 @@ data class CommentAnnotationResponse(
     val annotationId: Long,
     val annotationNumber: Int,
 
-    val xPercent: Double,
-    val yPercent: Double
+    val percentX: Double,
+    val percentY: Double
 )

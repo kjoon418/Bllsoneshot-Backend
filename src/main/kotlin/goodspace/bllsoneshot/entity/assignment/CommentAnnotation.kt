@@ -19,7 +19,7 @@ class CommentAnnotation(
     @Column(nullable = false)
     val number: Int,
     @Column(nullable = false)
-    val xPercent: Double,
+    val percentX: Double,
     @Column(nullable = false)
-    val yPercent: Double
+    val percentY: Double
 ) : BaseEntity()
