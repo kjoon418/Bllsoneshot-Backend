@@ -4,10 +4,10 @@ import goodspace.bllsoneshot.auth.dto.LoginRequest
 import goodspace.bllsoneshot.auth.dto.LoginResponse
 import goodspace.bllsoneshot.auth.service.AuthService
 import goodspace.bllsoneshot.global.cookie.RefreshTokenCookieProvider
-import goodspace.bllsoneshot.global.cookie.setCookie
 import goodspace.bllsoneshot.global.security.TokenProvider
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
@@ -45,11 +45,11 @@ class AuthController(
     ): ResponseEntity<LoginResponse> {
         val result = authService.login(request)
 
-        val refreshTokenCookie = refreshTokenCookieProvider.create(
+        refreshTokenCookieProvider.addToCookie(
             refreshToken = result.refreshToken,
-            maxAgeSeconds = tokenProvider.getRefreshTokenValiditySeconds()
+            maxAgeSeconds = tokenProvider.getRefreshTokenValiditySeconds(),
+            response = response
         )
-        response.setCookie(refreshTokenCookie.toString())
 
         return ResponseEntity.ok(
             LoginResponse(
@@ -59,7 +59,33 @@ class AuthController(
         )
     }
 
-    companion object {
-        const val SET_COOKIE = "Set-Cookie"
+    @PostMapping("/refresh")
+    @Operation(
+        summary = "액세스 토큰 재발급",
+        description = """
+            쿠키에 저장된 리프레시 토큰으로 새 액세스 토큰을 발급합니다.
+            로그인 시 설정된 refreshToken 쿠키가 요청에 포함되어야 합니다.
+        """
+    )
+    fun refresh(
+        request: HttpServletRequest,
+        response: HttpServletResponse
+    ): ResponseEntity<LoginResponse> {
+        val refreshToken = refreshTokenCookieProvider.extract(request)
+
+        val result = authService.reissueAccessToken(refreshToken)
+
+        refreshTokenCookieProvider.addToCookie(
+            refreshToken = result.refreshToken,
+            maxAgeSeconds = tokenProvider.getRefreshTokenValiditySeconds(),
+            response = response
+        )
+
+        return ResponseEntity.ok(
+            LoginResponse(
+                accessToken = result.accessToken,
+                role = result.role
+            )
+        )
     }
 }
