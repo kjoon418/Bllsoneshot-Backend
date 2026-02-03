@@ -1,8 +1,8 @@
-package goodspace.bllsoneshot.global.file
+package goodspace.bllsoneshot.file.service
 
 import goodspace.bllsoneshot.entity.assignment.File
-import goodspace.bllsoneshot.global.file.dto.FileDownloadResponse
-import goodspace.bllsoneshot.global.file.dto.FileUploadResponse
+import goodspace.bllsoneshot.file.dto.FileDownloadResponse
+import goodspace.bllsoneshot.file.dto.FileUploadResponse
 import goodspace.bllsoneshot.repository.file.FileRepository
 import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Value
@@ -19,12 +19,11 @@ import java.time.Duration
 import java.util.*
 
 @Service
-class FileStorageService(
+class FileService(
     private val s3Client: S3Client,
     private val fileRepository: FileRepository,
     private val s3Presigner: S3Presigner,
-    @Value("\${aws.s3.bucket}") private val bucket: String,
-    @Value("\${aws.s3.cdn-url}") private val cdnUrl: String
+    @Value("\${aws.s3.bucket}") private val bucket: String
 ) {
     companion object {
         private val ALLOWED_TYPES = setOf("image/png", "image/jpeg", "application/pdf")
@@ -35,7 +34,6 @@ class FileStorageService(
     @Transactional
     fun uploadFile(file: MultipartFile, folder: String): FileUploadResponse {
         validateFile(file)
-        require(folder.isNotBlank()) { "폴더 이름은 비어 있을 수 없습니다" }
 
         val uploaded = uploadToS3(file, folder)
 
@@ -49,7 +47,7 @@ class FileStorageService(
                     objectKey = uploaded.objectKey
                 )
             )
-            val url = "${cdnUrl.trimEnd('/')}/${uploaded.objectKey}"
+            val url = makePresignedUrl(uploaded.objectKey)
             return FileUploadResponse(savedFile.id!!, url, savedFile.fileName, savedFile.contentType)
         } catch (e: Exception) {
             deleteFromS3(uploaded.objectKey)
@@ -73,20 +71,11 @@ class FileStorageService(
         val file = fileRepository.findById(fileId)
             .orElseThrow { IllegalArgumentException("파일을 찾을 수 없습니다") }
 
-        val request = GetObjectRequest.builder()
-            .bucket(bucket)
-            .key(file.objectKey)
-            .build()
-
-        // 다운로드 가능한 임시 URL생성 (10분만 유효)
-        val presigned = s3Presigner.presignGetObject {
-            it.getObjectRequest(request)
-            it.signatureDuration(Duration.ofMinutes(10))
-        }
+        val presignedUrl = makePresignedUrl(file.objectKey)
 
         return FileDownloadResponse(
             fileId = fileId,
-            url = presigned.url().toString()
+            url = presignedUrl
         )
     }
 
@@ -123,7 +112,7 @@ class FileStorageService(
             ?.lowercase()
             ?.takeIf { it.isNotBlank() }
 
-        val name = UUID.randomUUID().toString()
+        val name = UUID.randomUUID().toString().replace("-", "").substring(0, 7)
         val safeFolder = folder.trim('/')
 
         return if (extension == null) "$safeFolder/$name" else "$safeFolder/$name.$extension"
@@ -139,6 +128,20 @@ class FileStorageService(
         } catch (e: Exception) {
             logger.warn("S3 delete failed. key=$objectKey", e)
         }
+    }
+
+    private fun makePresignedUrl(objectKey: String): String {
+        val request = GetObjectRequest.builder()
+            .bucket(bucket)
+            .key(objectKey)
+            .build()
+
+        val presigned = s3Presigner.presignGetObject {
+            it.getObjectRequest(request)
+            it.signatureDuration(Duration.ofMinutes(10))
+        }
+
+        return presigned.url().toString()
     }
 }
 

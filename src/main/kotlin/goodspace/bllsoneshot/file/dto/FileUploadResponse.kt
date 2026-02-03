@@ -1,4 +1,4 @@
-package goodspace.bllsoneshot.global.file.dto
+package goodspace.bllsoneshot.file.dto
 
 data class FileUploadResponse(
     val fileId: Long,

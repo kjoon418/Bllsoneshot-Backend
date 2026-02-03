@@ -1,4 +1,4 @@
-package goodspace.bllsoneshot.global.file
+package goodspace.bllsoneshot.file
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
