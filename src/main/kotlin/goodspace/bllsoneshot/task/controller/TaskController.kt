@@ -8,6 +8,7 @@ import goodspace.bllsoneshot.task.dto.request.TaskCompleteUpdateRequest
 import goodspace.bllsoneshot.task.dto.request.TaskSubmitRequest
 import goodspace.bllsoneshot.task.dto.response.feedback.TaskFeedbackResponse
 import jakarta.validation.Valid
+import goodspace.bllsoneshot.task.dto.response.TaskSubmitResponse
 import goodspace.bllsoneshot.task.dto.response.TaskResponse
 import goodspace.bllsoneshot.task.service.TaskService
 import io.swagger.v3.oas.annotations.Operation
@@ -84,6 +85,7 @@ class TaskController(
 
         return ResponseEntity.ok(response)
     }
+
     @PostMapping("/mentee")
     @Operation(
         summary = "할 일 추가(멘티)",
@@ -103,7 +105,34 @@ class TaskController(
         return ResponseEntity.ok(response)
     }
 
-    @PutMapping("/{taskId}")
+    @GetMapping("/{taskId}/submit")
+    @Operation(
+        summary = "할 일 제출 정보 조회",
+        description = """
+            할 일에 대한 제출 정보를 조회합니다.
+            응답의 proofShots 구조를 그대로 수정하여 PUT /tasks/{taskId} 요청 본문으로 사용할 수 있습니다.
+            
+            이미 멘토가 피드백을 남긴 할 일은 조회할 수 없습니다.
+
+            [응답]
+            taskId: 할 일 ID
+            name: 할 일 이름
+            subject: 과목(KOREAN, ENGLISH, MATH)
+            proofShots: 인증 사진 목록
+        """
+    )
+    fun getTaskForSubmit(
+        principal: Principal,
+        @PathVariable taskId: Long
+    ): ResponseEntity<TaskSubmitResponse> {
+        val userId = principal.userId
+
+        val response = taskService.getTaskForSubmit(userId, taskId)
+
+        return ResponseEntity.ok(response)
+    }
+
+    @PutMapping("/{taskId}/submit")
     @Operation(
         summary = "할 일 제출",
         description = """
@@ -128,7 +157,7 @@ class TaskController(
         return NO_CONTENT
     }
 
-    @GetMapping("/{taskId}")
+    @GetMapping("/{taskId}/feedback")
     @Operation(
         summary = "피드백 조회",
         description = """

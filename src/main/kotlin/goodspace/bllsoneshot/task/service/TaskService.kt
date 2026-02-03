@@ -8,9 +8,11 @@ import goodspace.bllsoneshot.repository.file.FileRepository
 import goodspace.bllsoneshot.repository.task.TaskRepository
 import goodspace.bllsoneshot.repository.user.UserRepository
 import goodspace.bllsoneshot.task.dto.request.*
+import goodspace.bllsoneshot.task.dto.response.TaskSubmitResponse
 import goodspace.bllsoneshot.task.dto.response.TaskResponse
 import goodspace.bllsoneshot.task.dto.response.feedback.TaskFeedbackResponse
 import goodspace.bllsoneshot.task.mapper.TaskFeedbackMapper
+import goodspace.bllsoneshot.task.mapper.TaskSubmitMapper
 import goodspace.bllsoneshot.task.mapper.TaskMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -22,9 +24,11 @@ class TaskService(
     private val fileRepository: FileRepository,
     private val userRepository: UserRepository,
     private val taskMapper: TaskMapper,
-    private val taskFeedbackMapper: TaskFeedbackMapper
+    private val taskFeedbackMapper: TaskFeedbackMapper,
+    private val taskSubmitMapper: TaskSubmitMapper
 ) {
 
+    @Transactional(readOnly = true)
     fun findTasksByDate(
         userId: Long,
         date: LocalDate
@@ -37,7 +41,7 @@ class TaskService(
     @Transactional
     fun createTaskByMentor(mentorId: Long,request: MentorTaskCreateRequest): TaskResponse {
         val mentee: User = userRepository.findById(request.menteeId)
-            .orElseThrow() { IllegalArgumentException(USER_NOT_FOUND.message) }
+            .orElseThrow { IllegalArgumentException(USER_NOT_FOUND.message) }
 
         validateDate(request.startDate, request.dueDate)
 
@@ -107,6 +111,17 @@ class TaskService(
         task.markFeedbackAsRead()
 
         return taskFeedbackMapper.map(task)
+    }
+
+    @Transactional(readOnly = true)
+    fun getTaskForSubmit(userId: Long, taskId: Long): TaskSubmitResponse {
+        val task = taskRepository.findByIdWithMenteeAndGeneralCommentAndProofShots(taskId)
+            ?: throw IllegalArgumentException(TASK_NOT_FOUND.message)
+
+        validateTaskOwnership(task, userId)
+        validateTaskSubmittable(task)
+
+        return taskSubmitMapper.map(task)
     }
 
     @Transactional
