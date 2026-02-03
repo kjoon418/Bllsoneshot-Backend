@@ -1,7 +1,7 @@
 package goodspace.bllsoneshot.task.mapper
 
 import goodspace.bllsoneshot.entity.assignment.ProofShot
-import goodspace.bllsoneshot.task.dto.response.ProofShotResponse
+import goodspace.bllsoneshot.task.dto.response.feedback.ProofShotResponse
 import org.springframework.stereotype.Component
 
 @Component

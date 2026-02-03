@@ -5,6 +5,7 @@ import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
+import jakarta.persistence.CascadeType
 import jakarta.persistence.FetchType
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
@@ -19,13 +20,13 @@ class Comment(
 
     @ManyToOne(fetch = FetchType.LAZY)
     val proofShot: ProofShot,
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, cascade = [CascadeType.PERSIST, CascadeType.REMOVE], orphanRemoval = true)
     val commentAnnotation: CommentAnnotation,
 
     @Column(nullable = false)
     val content: String,
     @Column(nullable = false)
-    val starred: Boolean,
+    val starred: Boolean = false,
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -42,7 +43,7 @@ class Comment(
         }
     }
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, cascade = [CascadeType.PERSIST, CascadeType.REMOVE], orphanRemoval = true)
     var answer: Answer? = null
 
     private var readByMentee: Boolean = false

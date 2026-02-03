@@ -4,11 +4,11 @@ import goodspace.bllsoneshot.entity.BaseEntity
 import goodspace.bllsoneshot.entity.user.User
 import goodspace.bllsoneshot.entity.user.UserRole
 import goodspace.bllsoneshot.global.exception.ExceptionMessage.CANNOT_COMPLETE_WITHOUT_ACTUAL_MINUTES
-import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
+import jakarta.persistence.CascadeType
 import jakarta.persistence.FetchType
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
@@ -44,16 +44,16 @@ class Task(
     val createdBy: UserRole
 ) : BaseEntity() {
     // Task 저장시 worksheets, columnLinks 도 DB에 저장하기 위해 CascadeType.PERSIST 추가, 삭제도 동일
-    @OneToMany(mappedBy = "task", fetch = FetchType.LAZY, cascade = [CascadeType.PERSIST, CascadeType.REMOVE])
+    @OneToMany(mappedBy = "task", fetch = FetchType.LAZY, cascade = [CascadeType.PERSIST, CascadeType.REMOVE], orphanRemoval = true)
     val worksheets: MutableList<Worksheet> = mutableListOf()
 
-    @OneToMany(mappedBy = "task", fetch = FetchType.LAZY, cascade = [CascadeType.PERSIST, CascadeType.REMOVE])
+    @OneToMany(mappedBy = "task", fetch = FetchType.LAZY, cascade = [CascadeType.PERSIST, CascadeType.REMOVE], orphanRemoval = true)
     val columnLinks: MutableList<ColumnLink> = mutableListOf()
 
-    @OneToMany(mappedBy = "task", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "task", fetch = FetchType.LAZY, cascade = [CascadeType.PERSIST, CascadeType.REMOVE], orphanRemoval = true)
     val proofShots: MutableList<ProofShot> = mutableListOf()
 
-    @OneToMany(mappedBy = "task", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "task", fetch = FetchType.LAZY, cascade = [CascadeType.PERSIST, CascadeType.REMOVE], orphanRemoval = true)
     val comments: MutableList<Comment> = mutableListOf()
 
     @OneToOne(fetch = FetchType.LAZY)

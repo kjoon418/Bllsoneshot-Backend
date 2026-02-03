@@ -5,7 +5,8 @@ import goodspace.bllsoneshot.global.security.userId
 import goodspace.bllsoneshot.task.dto.request.MenteeTaskCreateRequest
 import goodspace.bllsoneshot.task.dto.request.MentorTaskCreateRequest
 import goodspace.bllsoneshot.task.dto.request.TaskCompleteUpdateRequest
-import goodspace.bllsoneshot.task.dto.response.TaskFeedbackResponse
+import goodspace.bllsoneshot.task.dto.request.TaskSubmitRequest
+import goodspace.bllsoneshot.task.dto.response.feedback.TaskFeedbackResponse
 import jakarta.validation.Valid
 import goodspace.bllsoneshot.task.dto.response.TaskResponse
 import goodspace.bllsoneshot.task.service.TaskService
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -101,12 +103,38 @@ class TaskController(
         return ResponseEntity.ok(response)
     }
 
+    @PutMapping("/{taskId}")
+    @Operation(
+        summary = "할 일 제출",
+        description = """
+            할 일에 인증 사진과 질문을 제출합니다.
+            기존의 인증 사진과 질문은 제거됩니다.
+            
+            이미 멘토가 피드백(총평 제외)을 남긴 할 일에 대해서는 호출할 수 없습니다.
+            
+            질문의 번호는 리스트의 순서대로 배정됩니다.
+            (1부터 시작하는 오름차순)
+        """
+    )
+    fun submitTask(
+        principal: Principal,
+        @PathVariable taskId: Long,
+        @RequestBody request: TaskSubmitRequest
+    ): ResponseEntity<Void> {
+        val userId = principal.userId
+
+        taskService.submitTask(userId, taskId, request)
+
+        return NO_CONTENT
+    }
+
     @GetMapping("/{taskId}")
     @Operation(
         summary = "피드백 조회",
         description = """
             ID를 기반으로 할 일의 피드백 정보를 조회합니다.
             본인의 할 일에 대한 피드백만 조회할 수 있으며, 임시 저장 상태인 피드백은 조회되지 않습니다.
+            피드백이 있는 할 일에 대해서만 호출할 수 있습니다.
 
             [null 가능 속성]
             answer: 멘티 답변 미작성 시 null

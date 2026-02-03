@@ -11,7 +11,7 @@ import jakarta.persistence.OneToOne
 @Entity
 class CommentAnnotation(
     @OneToOne(mappedBy = "commentAnnotation", fetch = FetchType.LAZY)
-    val comment: Comment,
+    var comment: Comment? = null,
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false)
     val proofShot: ProofShot,

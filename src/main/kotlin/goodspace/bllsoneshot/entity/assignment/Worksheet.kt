@@ -13,7 +13,7 @@ class Worksheet(
     @JoinColumn(nullable = false)
     val task: Task,
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false)
     val file: File
 ) : BaseEntity()
