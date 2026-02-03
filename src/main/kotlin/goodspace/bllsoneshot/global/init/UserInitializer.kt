@@ -10,34 +10,36 @@ import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Transactional
 
 @Component
 class UserInitializer(
     private val userRepository: UserRepository,
     private val passwordEncoder: PasswordEncoder,
 
-    @Value("\${init.mentor.login-id:mentor}")
+    @Value("\${init.mentor.login-id}")
     private val mentorLoginId: String,
-    @Value("\${init.mentor.password:mentor123}")
+    @Value("\${init.mentor.password}")
     private val mentorPassword: String,
-    @Value("\${init.mentor.name:기본멘토}")
+    @Value("\${init.mentor.name}")
     private val mentorName: String,
 
-    @Value("\${init.mentee1.login-id:mentee1}")
+    @Value("\${init.mentee1.login-id}")
     private val mentee1LoginId: String,
-    @Value("\${init.mentee1.password:mentee1}")
+    @Value("\${init.mentee1.password}")
     private val mentee1Password: String,
-    @Value("\${init.mentee1.name:기본멘티1}")
+    @Value("\${init.mentee1.name}")
     private val mentee1Name: String,
 
-    @Value("\${init.mentee2.login-id:mentee2}")
+    @Value("\${init.mentee2.login-id}")
     private val mentee2LoginId: String,
-    @Value("\${init.mentee2.password:mentee2}")
+    @Value("\${init.mentee2.password}")
     private val mentee2Password: String,
-    @Value("\${init.mentee2.name:기본멘티2}")
+    @Value("\${init.mentee2.name}")
     private val mentee2Name: String
 ) : ApplicationRunner {
 
+    @Transactional
     override fun run(args: ApplicationArguments) {
         val mentor = initIfNotExists(mentorLoginId, mentorPassword, mentorName, ROLE_MENTOR)
 

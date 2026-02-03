@@ -34,21 +34,24 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
     properties:
       hibernate:
         format_sql: true
 
 init:
   mentor:
-    login-id: ${INIT_MENTOR_LOGIN_ID:}
-    password: ${INIT_MENTOR_PASSWORD:}
+    login-id: ${INIT_MENTOR_LOGIN_ID:mentor}
+    password: ${INIT_MENTOR_PASSWORD:mentor123}
+    name: ${INIT_MENTOR_NAME:기본멘토}
   mentee1:
-    login-id: ${INIT_MENTEE1_LOGIN_ID:}
-    password: ${INIT_MENTEE1_PASSWORD:}
+    login-id: ${INIT_MENTEE1_LOGIN_ID:mentee1}
+    password: ${INIT_MENTEE1_PASSWORD:mentee1}
+    name: ${INIT_MENTEE1_NAME:기본멘티1}
   mentee2:
-    login-id: ${INIT_MENTEE2_LOGIN_ID:}
-    password: ${INIT_MENTEE2_PASSWORD:}
+    login-id: ${INIT_MENTEE2_LOGIN_ID:mentee2}
+    password: ${INIT_MENTEE2_PASSWORD:mentee2}
+    name: ${INIT_MENTEE2_NAME:기본멘티2}
 
 logging:
   level:
