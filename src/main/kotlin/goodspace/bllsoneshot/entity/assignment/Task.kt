@@ -34,7 +34,7 @@ class Task(
 
     @Column(nullable = false)
     val goalMinutes: Int,
-    val actualMinutes: Int?,
+    var actualMinutes: Int?,
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
