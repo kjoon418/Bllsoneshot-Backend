@@ -190,8 +190,12 @@ class TaskController(
         summary = "할 일 완료 상태 수정",
         description = """
             할 일의 완료 상태를 변경합니다.
-            시간을 기록하지 않은 할 일은 완료할 수 없습니다.
             
+            시간을 기록하지 않은 할 일은 완료할 수 없습니다.
+            미래의 할 일은 완료할 수 없습니다.
+            
+            [요청]
+            currentDate: 조회할 날짜(yyyy-MM-dd)
             completed: 완료 여부(true/false)
         """
     )

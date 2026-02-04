@@ -147,8 +147,19 @@ class TaskService(
         val task = findTaskBy(taskId)
 
         validateTaskOwnership(task, userId)
+        if (request.completed) {
+            validateTaskCompletable(task, request.currentDate)
+        }
 
         task.completed = request.completed
+    }
+
+    private fun validateTaskCompletable(task: Task, currentDate: LocalDate) {
+        val startDate = task.startDate ?: return
+
+        if (startDate.isAfter(currentDate)) {
+            throw IllegalStateException(CANNOT_COMPLETE_FUTURE_TASK.message)
+        }
     }
 
     private fun validateDate(startDate: LocalDate?, dueDate: LocalDate?) {
