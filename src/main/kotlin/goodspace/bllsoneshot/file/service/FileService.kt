@@ -134,6 +134,7 @@ class FileService(
         val request = GetObjectRequest.builder()
             .bucket(bucket)
             .key(objectKey)
+            .responseContentDisposition("attachment")
             .build()
 
         val presigned = s3Presigner.presignGetObject {
