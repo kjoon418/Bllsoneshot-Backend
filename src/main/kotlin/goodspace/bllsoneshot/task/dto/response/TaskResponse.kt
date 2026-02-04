@@ -9,10 +9,6 @@ data class TaskResponse(
 
     val createdBy: UserRole,
     val subject: Subject,
-    val generalComment: String?,
-
-    val goalMinutes: Int,
-    val actualMinutes: Int?,
 
     val completed: Boolean,
     val readFeedback: Boolean,

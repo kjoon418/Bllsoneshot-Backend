@@ -7,6 +7,7 @@ import goodspace.bllsoneshot.task.dto.request.MentorTaskCreateRequest
 import goodspace.bllsoneshot.task.dto.request.ActualMinutesUpdateRequest
 import goodspace.bllsoneshot.task.dto.request.TaskCompleteRequest
 import goodspace.bllsoneshot.task.dto.request.TaskSubmitRequest
+import goodspace.bllsoneshot.task.dto.response.TaskDetailResponse
 import goodspace.bllsoneshot.task.dto.response.feedback.TaskFeedbackResponse
 import jakarta.validation.Valid
 import goodspace.bllsoneshot.task.dto.response.TaskSubmitResponse
@@ -50,10 +51,6 @@ class TaskController(
             [응답]
             createdBy: 할 일을 만든 사람(ROLE_MENTOR / ROLE_MENTEE)
             subject: 과목(KOREAN, ENGLISH, MATH)
-
-            [null 가능 속성]
-            generalComment: 피드백(총평) 미작성 시 null
-            actualMinutes: 실제 소요 시간 미기록 시 null
         """
     )
     fun getDailyTasks(
@@ -103,6 +100,26 @@ class TaskController(
         val userId = principal.userId
 
         val response = taskService.createTaskByMentee(userId, request)
+
+        return ResponseEntity.ok(response)
+    }
+
+    @GetMapping("/{taskId}/details")
+    @Operation(
+        summary = "할 일 상세조회(바텀시트)",
+        description = """
+            할 일의 상세 정보를 조회합니다.
+            
+            본인의 할 일만 조회할 수 있습니다.
+        """
+    )
+    fun getTaskDetails(
+        principal: Principal,
+        @PathVariable taskId: Long
+    ): ResponseEntity<TaskDetailResponse> {
+        val userId = principal.userId
+
+        val response = taskService.getTaskDetail(userId, taskId)
 
         return ResponseEntity.ok(response)
     }
@@ -176,9 +193,9 @@ class TaskController(
             proofShots, worksheets, columnLinks: 없으면 빈 배열
         """
     )
-    fun getTaskDetails(
+    fun getTaskFeedback(
         principal: Principal,
-        @PathVariable taskId: Long,
+        @PathVariable taskId: Long
     ): ResponseEntity<TaskFeedbackResponse> {
         val userId = principal.userId
 

@@ -8,9 +8,11 @@ import goodspace.bllsoneshot.repository.file.FileRepository
 import goodspace.bllsoneshot.repository.task.TaskRepository
 import goodspace.bllsoneshot.repository.user.UserRepository
 import goodspace.bllsoneshot.task.dto.request.*
+import goodspace.bllsoneshot.task.dto.response.TaskDetailResponse
 import goodspace.bllsoneshot.task.dto.response.TaskSubmitResponse
 import goodspace.bllsoneshot.task.dto.response.TaskResponse
 import goodspace.bllsoneshot.task.dto.response.feedback.TaskFeedbackResponse
+import goodspace.bllsoneshot.task.mapper.TaskDetailMapper
 import goodspace.bllsoneshot.task.mapper.TaskFeedbackMapper
 import goodspace.bllsoneshot.task.mapper.TaskSubmitMapper
 import goodspace.bllsoneshot.task.mapper.TaskMapper
@@ -24,6 +26,7 @@ class TaskService(
     private val fileRepository: FileRepository,
     private val userRepository: UserRepository,
     private val taskMapper: TaskMapper,
+    private val taskDetailMapper: TaskDetailMapper,
     private val taskFeedbackMapper: TaskFeedbackMapper,
     private val taskSubmitMapper: TaskSubmitMapper
 ) {
@@ -109,6 +112,15 @@ class TaskService(
         task.markFeedbackAsRead()
 
         return taskFeedbackMapper.map(task)
+    }
+
+    @Transactional(readOnly = true)
+    fun getTaskDetail(userId: Long, taskId: Long): TaskDetailResponse {
+        val task = findTaskBy(taskId)
+
+        validateTaskOwnership(task, userId)
+
+        return taskDetailMapper.map(task)
     }
 
     @Transactional(readOnly = true)

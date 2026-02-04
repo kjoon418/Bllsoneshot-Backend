@@ -10,7 +10,5 @@ data class TaskFeedbackResponse(
     val mentorName: String,
     val generalComment: String,
 
-    val proofShots: List<ProofShotResponse>,
-    val worksheets: List<WorksheetResponse>,
-    val columnLinks: List<ColumnLinkResponse>
+    val proofShots: List<ProofShotResponse>
 )

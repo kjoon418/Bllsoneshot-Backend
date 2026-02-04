@@ -14,10 +14,6 @@ class TaskMapper {
 
             createdBy = task.createdBy,
             subject = task.subject,
-            generalComment = task.generalComment?.content,
-
-            goalMinutes = task.goalMinutes,
-            actualMinutes = task.actualMinutes,
 
             completed = task.completed,
             readFeedback = task.hasReadAllFeedbacks(),

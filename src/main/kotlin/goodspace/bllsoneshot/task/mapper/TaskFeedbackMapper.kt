@@ -6,9 +6,7 @@ import org.springframework.stereotype.Component
 
 @Component
 class TaskFeedbackMapper(
-    private val proofShotMapper: ProofShotMapper,
-    private val worksheetMapper: WorksheetMapper,
-    private val columnLinkMapper: ColumnLinkMapper
+    private val proofShotMapper: ProofShotMapper
 ) {
 
     fun map(task: Task): TaskFeedbackResponse {
@@ -18,9 +16,7 @@ class TaskFeedbackMapper(
             taskName = task.name,
             mentorName = task.mentee.mentor?.name ?: "",
             generalComment = task.generalComment?.content ?: "",
-            proofShots = task.proofShots.map { proofShotMapper.map(it) },
-            worksheets = task.worksheets.map { worksheetMapper.map(it) },
-            columnLinks = task.columnLinks.map { columnLinkMapper.map(it) }
+            proofShots = task.proofShots.map { proofShotMapper.map(it) }
         )
     }
 }
