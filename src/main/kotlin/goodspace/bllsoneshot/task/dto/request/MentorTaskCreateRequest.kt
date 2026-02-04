@@ -6,10 +6,11 @@ import jakarta.validation.constraints.Positive
 import java.time.LocalDate
 import java.util.Collections.emptyList
 
-data class MentorTaskCreateRequest(
+data class  MentorTaskCreateRequest(
     val menteeId: Long,
 
     val subject: Subject,
+    val dates: List<LocalDate> = emptyList(),
     val startDate: LocalDate?,
     val dueDate: LocalDate?,
     @field:NotBlank(message = "할 일 이름이 비어 있습니다.")

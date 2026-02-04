@@ -39,44 +39,16 @@ class TaskService(
     }
 
     @Transactional
-    fun createTaskByMentor(mentorId: Long,request: MentorTaskCreateRequest): TaskResponse {
+    fun createTaskByMentor(mentorId: Long, request: MentorTaskCreateRequest): List<TaskResponse> {
         val mentee: User = userRepository.findById(request.menteeId)
             .orElseThrow { IllegalArgumentException(USER_NOT_FOUND.message) }
 
-        validateDate(request.startDate, request.dueDate)
+        validateDate(request.dates, request.startDate, request.dueDate)
 
-        val task = Task(
-            mentee = mentee,
-            subject = request.subject,
-            startDate = request.startDate,
-            dueDate = request.dueDate,
-            name = request.taskName,
-            goalMinutes = request.goalMinutes,
-            actualMinutes = null,
-            createdBy = UserRole.ROLE_MENTOR
-        )
-        task.worksheets.addAll(
-            request.worksheets
-                // fileId가 null인 항목은 제거
-                .mapNotNull { it.fileId }
-                .mapNotNull { fileId ->
-                    // 파일이 없으면 null
-                    val file = fileRepository.findById(fileId).orElse(null)
-                    // let은 file이 null이 아닐 때만 Worksheet 엔티티 생성
-                    file?.let { Worksheet(task, it) }
-                }
-        )
-        task.columnLinks.addAll(
-            request.columnLinks
-                // link가 null이거나 빈 문자열인 항목은 제거
-                .mapNotNull { it.link?.takeIf { link -> link.isNotBlank() } }
-                // 각 link로 ColumnLink 엔티티 생성
-                .map { link -> ColumnLink(task, link) }
-        )
+        val tasks = buildTasks(request, mentee)
+        val savedTasks = taskRepository.saveAll(tasks)
 
-        val savedTask = taskRepository.save(task)
-
-        return taskMapper.map(savedTask)
+        return taskMapper.map(savedTasks)
     }
 
     @Transactional
@@ -151,7 +123,18 @@ class TaskService(
         task.completed = request.completed
     }
 
-    private fun validateDate(startDate: LocalDate?, dueDate: LocalDate?) {
+    private fun validateDate(
+        dates: List<LocalDate>,
+        startDate: LocalDate?,
+        dueDate: LocalDate?
+    ) {
+        if (dates.isNotEmpty()) {
+            require(startDate == null && dueDate == null) {
+                DATE_RANGE_NOT_ALLOWED_WITH_DATES.message
+            }
+            return
+        }
+
         require(!(startDate == null && dueDate == null)) {
             START_OR_END_DATE_REQUIRED.message
         }
@@ -159,6 +142,62 @@ class TaskService(
             require(!startDate.isAfter(dueDate)) {
                 DATE_INVALID.message
             }
+        }
+    }
+
+    private fun buildTasks(request: MentorTaskCreateRequest, mentee: User): List<Task> {
+        if (request.dates.isEmpty()) {
+            val task = Task(
+                mentee = mentee,
+                subject = request.subject,
+                startDate = request.startDate,
+                dueDate = request.dueDate,
+                name = request.taskName,
+                goalMinutes = request.goalMinutes,
+                actualMinutes = null,
+                createdBy = UserRole.ROLE_MENTOR
+            )
+            task.worksheets.addAll(
+                request.worksheets
+                    .mapNotNull { it.fileId }
+                    .mapNotNull { fileId ->
+                        val file = fileRepository.findById(fileId).orElse(null)
+                        file?.let { Worksheet(task, it) }
+                    }
+            )
+            task.columnLinks.addAll(
+                request.columnLinks
+                    .mapNotNull { it.link?.takeIf { link -> link.isNotBlank() } }
+                    .map { link -> ColumnLink(task, link) }
+            )
+            return listOf(task)
+        }
+
+        return request.dates.distinct().map { date ->
+            val task = Task(
+                mentee = mentee,
+                subject = request.subject,
+                startDate = date,
+                dueDate = date,
+                name = request.taskName,
+                goalMinutes = request.goalMinutes,
+                actualMinutes = null,
+                createdBy = UserRole.ROLE_MENTOR
+            )
+            task.worksheets.addAll(
+                request.worksheets
+                    .mapNotNull { it.fileId }
+                    .mapNotNull { fileId ->
+                        val file = fileRepository.findById(fileId).orElse(null)
+                        file?.let { Worksheet(task, it) }
+                    }
+            )
+            task.columnLinks.addAll(
+                request.columnLinks
+                    .mapNotNull { it.link?.takeIf { link -> link.isNotBlank() } }
+                    .map { link -> ColumnLink(task, link) }
+            )
+            task
         }
     }
 

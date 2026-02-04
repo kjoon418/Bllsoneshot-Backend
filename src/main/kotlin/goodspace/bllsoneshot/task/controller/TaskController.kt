@@ -73,12 +73,14 @@ class TaskController(
         description = """
             멘토 권한으로 할 일을 추가합니다.
             생성된 할 일에 대한 정보를 응답합니다.
+            날자를 띄엄띄엄 여러 개 선택한 경우, 각 날짜에 해당하는 할 일이 각각 생성됩니다.
+            날자를 연속으로 선택한 경우, 시작일과 마감일 사이의 모든 날짜에 해당하는 할 일이 각각 생성됩니다.
         """
     )
     fun addTaskByMentor(
         principal: Principal,
         @Valid @RequestBody request: MentorTaskCreateRequest
-    ): ResponseEntity<TaskResponse> {
+    ): ResponseEntity<List<TaskResponse>> {
         val userId = principal.userId
 
         val response = taskService.createTaskByMentor(userId, request)
