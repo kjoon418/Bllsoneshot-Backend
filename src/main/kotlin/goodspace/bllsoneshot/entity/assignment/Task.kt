@@ -3,12 +3,12 @@ package goodspace.bllsoneshot.entity.assignment
 import goodspace.bllsoneshot.entity.BaseEntity
 import goodspace.bllsoneshot.entity.user.User
 import goodspace.bllsoneshot.entity.user.UserRole
-import goodspace.bllsoneshot.global.exception.ExceptionMessage.CANNOT_COMPLETE_WITHOUT_ACTUAL_MINUTES
+import goodspace.bllsoneshot.global.exception.ExceptionMessage.NEGATIVE_ACTUAL_MINUTES
+import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
-import jakarta.persistence.CascadeType
 import jakarta.persistence.FetchType
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
@@ -34,7 +34,6 @@ class Task(
 
     @Column(nullable = false)
     val goalMinutes: Int,
-    var actualMinutes: Int?,
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -58,9 +57,11 @@ class Task(
 
     @Column(nullable = false)
     var completed: Boolean = false
+
+    var actualMinutes: Int? = null
         set(value) {
-            if (value) {
-                check(actualMinutes != null) { CANNOT_COMPLETE_WITHOUT_ACTUAL_MINUTES.message }
+            if (value != null && value < MINIMUM_ACTUAL_MINUTES) {
+                throw IllegalArgumentException(NEGATIVE_ACTUAL_MINUTES.message)
             }
 
             field = value
@@ -86,5 +87,9 @@ class Task(
 
     fun markFeedbackAsRead() {
         comments.forEach { it.markAsRead() }
+    }
+
+    companion object {
+        private const val MINIMUM_ACTUAL_MINUTES = 0
     }
 }

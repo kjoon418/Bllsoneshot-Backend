@@ -52,7 +52,6 @@ class TaskService(
             dueDate = request.dueDate,
             name = request.taskName,
             goalMinutes = request.goalMinutes,
-            actualMinutes = null,
             createdBy = UserRole.ROLE_MENTOR
         )
         task.worksheets.addAll(
@@ -90,7 +89,6 @@ class TaskService(
             startDate = request.date,
             dueDate = request.date,
             goalMinutes = request.goalMinutes,
-            actualMinutes = null,
             subject = request.subject,
             createdBy = UserRole.ROLE_MENTEE
         )
@@ -142,16 +140,15 @@ class TaskService(
     fun updateCompleted(
         userId: Long,
         taskId: Long,
-        request: TaskCompleteUpdateRequest
+        request: TaskCompleteRequest
     ) {
         val task = findTaskBy(taskId)
 
         validateTaskOwnership(task, userId)
-        if (request.completed) {
-            validateTaskCompletable(task, request.currentDate)
-        }
+        validateTaskCompletable(task, request.currentDate)
 
-        task.completed = request.completed
+        task.actualMinutes = request.actualMinutes
+        task.completed = true
     }
 
     @Transactional
@@ -163,7 +160,7 @@ class TaskService(
         val task = findTaskBy(taskId)
 
         validateTaskOwnership(task, userId)
-        validateTaskCompletable(task, request.currentDate)
+        validateTaskCompleted(task)
 
         task.actualMinutes = request.actualMinutes
     }
@@ -241,5 +238,9 @@ class TaskService(
 
     private fun validateTaskSubmittable(task: Task) {
         check(!task.hasFeedback()) { TASK_NOT_SUBMITTABLE.message }
+    }
+
+    private fun validateTaskCompleted(task: Task) {
+        check(task.completed) { INCOMPLETED_TASK.message }
     }
 }

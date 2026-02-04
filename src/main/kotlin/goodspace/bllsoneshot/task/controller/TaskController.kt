@@ -5,7 +5,7 @@ import goodspace.bllsoneshot.global.security.userId
 import goodspace.bllsoneshot.task.dto.request.MenteeTaskCreateRequest
 import goodspace.bllsoneshot.task.dto.request.MentorTaskCreateRequest
 import goodspace.bllsoneshot.task.dto.request.ActualMinutesUpdateRequest
-import goodspace.bllsoneshot.task.dto.request.TaskCompleteUpdateRequest
+import goodspace.bllsoneshot.task.dto.request.TaskCompleteRequest
 import goodspace.bllsoneshot.task.dto.request.TaskSubmitRequest
 import goodspace.bllsoneshot.task.dto.response.feedback.TaskFeedbackResponse
 import jakarta.validation.Valid
@@ -186,18 +186,43 @@ class TaskController(
         return ResponseEntity.ok(response)
     }
 
-    @PutMapping("/{taskId}/actual-minutes")
+    @PatchMapping("/{taskId}/completed")
     @Operation(
-        summary = "시간 기록",
+        summary = "할 일 완료",
         description = """
-            해당 할 일에 대한 학습 시간을 기록합니다.
+            할 일을 완료합니다.
             
-            본인의 할 일에 대해서만 호출할 수 있습니다.
             미래의 할 일에 대해선 호출할 수 없습니다.
+            본인의 할 일에 대해서만 호출할 수 있습니다.
             
             [요청]
             currentDate: 현재 날짜(yyyy-MM-dd)
-            actualMinutes: 학습 시간(null로 보낼 경우, 학습 시간이 없는 것으로 간주)
+            actualMinutes: 학습 시간(분, 0 이상)
+        """
+    )
+    fun updateCompleted(
+        principal: Principal,
+        @PathVariable taskId: Long,
+        @RequestBody request: TaskCompleteRequest
+    ): ResponseEntity<Void> {
+        val userId = principal.userId
+
+        taskService.updateCompleted(userId, taskId, request)
+
+        return NO_CONTENT
+    }
+
+    @PutMapping("/{taskId}/actual-minutes")
+    @Operation(
+        summary = "학습 시간 수정",
+        description = """
+            할 일의 학습 시간을 수정합니다.
+            
+            완료된 할 일에 대해서만 호출할 수 있습니다.
+            본인의 할 일에 대해서만 호출할 수 있습니다.
+            
+            [요청]
+            actualMinutes: 학습 시간(분, 0 이상)
         """
     )
     fun updateActualMinutes(
@@ -208,33 +233,6 @@ class TaskController(
         val userId = principal.userId
 
         taskService.updateActualMinutes(userId, taskId, request)
-
-        return NO_CONTENT
-    }
-
-    @PatchMapping("/{taskId}/completed")
-    @Operation(
-        summary = "할 일 완료 상태 수정",
-        description = """
-            할 일의 완료 상태를 변경합니다.
-            
-            본인의 할 일에 대해서만 호출할 수 있습니다.
-            시간을 기록하지 않은 할 일은 완료할 수 없습니다.
-            미래의 할 일은 완료할 수 없습니다.
-            
-            [요청]
-            currentDate: 현재 날짜(yyyy-MM-dd)
-            completed: 완료 여부(true/false)
-        """
-    )
-    fun updateCompleted(
-        principal: Principal,
-        @PathVariable taskId: Long,
-        @Valid @RequestBody request: TaskCompleteUpdateRequest
-    ): ResponseEntity<Void> {
-        val userId = principal.userId
-
-        taskService.updateCompleted(userId, taskId, request)
 
         return NO_CONTENT
     }
