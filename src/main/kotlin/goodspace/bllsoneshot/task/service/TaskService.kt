@@ -33,7 +33,7 @@ class TaskService(
         userId: Long,
         date: LocalDate
     ): List<TaskResponse> {
-        val tasks = taskRepository.findByMenteeIdAndDate(userId, date)
+        val tasks = taskRepository.findCurrentTasks(userId, date)
 
         return taskMapper.map(tasks)
     }
