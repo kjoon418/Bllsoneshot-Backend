@@ -50,10 +50,6 @@ class TaskController(
             [응답]
             createdBy: 할 일을 만든 사람(ROLE_MENTOR / ROLE_MENTEE)
             subject: 과목(KOREAN, ENGLISH, MATH)
-
-            [null 가능 속성]
-            generalComment: 피드백(총평) 미작성 시 null
-            actualMinutes: 실제 소요 시간 미기록 시 null
         """
     )
     fun getDailyTasks(
