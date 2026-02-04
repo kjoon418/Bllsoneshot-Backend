@@ -165,6 +165,16 @@ class TaskService(
         task.actualMinutes = request.actualMinutes
     }
 
+    @Transactional
+    fun deleteTaskByMentee(userId: Long, taskId: Long) {
+        val task = findTaskBy(taskId)
+
+        validateTaskOwnership(task, userId)
+        validateDeletableByMentee(task)
+
+        taskRepository.delete(task)
+    }
+
     private fun validateTaskCompletable(task: Task, currentDate: LocalDate) {
         val startDate = task.startDate ?: return
 
@@ -242,5 +252,9 @@ class TaskService(
 
     private fun validateTaskCompleted(task: Task) {
         check(task.completed) { INCOMPLETED_TASK.message }
+    }
+
+    private fun validateDeletableByMentee(task: Task) {
+        check(task.createdBy == UserRole.ROLE_MENTEE) { CANNOT_DELETE_MENTOR_CREATED_TASK.message }
     }
 }

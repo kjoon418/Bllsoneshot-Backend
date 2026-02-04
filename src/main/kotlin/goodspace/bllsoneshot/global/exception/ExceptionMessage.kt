@@ -13,6 +13,7 @@ enum class ExceptionMessage(
     CANNOT_COMPLETE_FUTURE_TASK("미래의 할 일은 완료할 수 없습니다."),
     INCOMPLETED_TASK("완료되지 않은 할 일입니다."),
     TASK_NOT_SUBMITTABLE("제출할 수 없는 할 일입니다."),
+    CANNOT_DELETE_MENTOR_CREATED_TASK("멘토가 만든 할 일은 삭제할 수 없습니다."),
     START_OR_END_DATE_REQUIRED("시작일과 마감일 중 하나는 반드시 입력해야 합니다."),
     DATE_INVALID("시작일은 마감일보다 이후일 수 없습니다."),
     NEGATIVE_ACTUAL_MINUTES("학습 시간은 음수일 수 없습니다.")
