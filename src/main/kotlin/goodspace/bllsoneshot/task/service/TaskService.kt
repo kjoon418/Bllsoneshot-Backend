@@ -199,7 +199,6 @@ class TaskService(
                 dueDate = request.dueDate,
                 name = request.taskName,
                 goalMinutes = request.goalMinutes,
-                actualMinutes = null,
                 createdBy = UserRole.ROLE_MENTOR
             )
             task.worksheets.addAll(
@@ -226,7 +225,6 @@ class TaskService(
                 dueDate = date,
                 name = request.taskName,
                 goalMinutes = request.goalMinutes,
-                actualMinutes = null,
                 createdBy = UserRole.ROLE_MENTOR
             )
             task.worksheets.addAll(
