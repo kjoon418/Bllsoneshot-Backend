@@ -50,7 +50,7 @@ class TaskController(
 
             [응답]
             createdBy: 할 일을 만든 사람(ROLE_MENTOR / ROLE_MENTEE)
-            subject: 과목(KOREAN, ENGLISH, MATH)
+            subject: 과목(KOREAN, ENGLISH, MATH, RESOURCE)
         """
     )
     fun getDailyTasks(
@@ -138,7 +138,7 @@ class TaskController(
             [응답]
             taskId: 할 일 ID
             name: 할 일 이름
-            subject: 과목(KOREAN, ENGLISH, MATH)
+            subject: 과목(KOREAN, ENGLISH, MATH, RESOURCE)
             proofShots: 인증 사진 목록
         """
     )
