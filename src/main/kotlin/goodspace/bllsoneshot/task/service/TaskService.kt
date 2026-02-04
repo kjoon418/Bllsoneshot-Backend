@@ -154,6 +154,20 @@ class TaskService(
         task.completed = request.completed
     }
 
+    @Transactional
+    fun updateActualMinutes(
+        userId: Long,
+        taskId: Long,
+        request: ActualMinutesUpdateRequest
+    ) {
+        val task = findTaskBy(taskId)
+
+        validateTaskOwnership(task, userId)
+        validateTaskCompletable(task, request.currentDate)
+
+        task.actualMinutes = request.actualMinutes
+    }
+
     private fun validateTaskCompletable(task: Task, currentDate: LocalDate) {
         val startDate = task.startDate ?: return
 
