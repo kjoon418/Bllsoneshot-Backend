@@ -8,9 +8,11 @@ import goodspace.bllsoneshot.repository.file.FileRepository
 import goodspace.bllsoneshot.repository.task.TaskRepository
 import goodspace.bllsoneshot.repository.user.UserRepository
 import goodspace.bllsoneshot.task.dto.request.*
-import goodspace.bllsoneshot.task.dto.response.TaskSubmitResponse
+import goodspace.bllsoneshot.task.dto.response.TaskDetailResponse
+import goodspace.bllsoneshot.task.dto.response.submit.TaskSubmitResponse
 import goodspace.bllsoneshot.task.dto.response.TaskResponse
 import goodspace.bllsoneshot.task.dto.response.feedback.TaskFeedbackResponse
+import goodspace.bllsoneshot.task.mapper.TaskDetailMapper
 import goodspace.bllsoneshot.task.mapper.TaskFeedbackMapper
 import goodspace.bllsoneshot.task.mapper.TaskSubmitMapper
 import goodspace.bllsoneshot.task.mapper.TaskMapper
@@ -24,6 +26,7 @@ class TaskService(
     private val fileRepository: FileRepository,
     private val userRepository: UserRepository,
     private val taskMapper: TaskMapper,
+    private val taskDetailMapper: TaskDetailMapper,
     private val taskFeedbackMapper: TaskFeedbackMapper,
     private val taskSubmitMapper: TaskSubmitMapper
 ) {
@@ -33,7 +36,7 @@ class TaskService(
         userId: Long,
         date: LocalDate
     ): List<TaskResponse> {
-        val tasks = taskRepository.findByMenteeIdAndDate(userId, date)
+        val tasks = taskRepository.findCurrentTasks(userId, date)
 
         return taskMapper.map(tasks)
     }
@@ -62,7 +65,6 @@ class TaskService(
             startDate = request.date,
             dueDate = request.date,
             goalMinutes = request.goalMinutes,
-            actualMinutes = null,
             subject = request.subject,
             createdBy = UserRole.ROLE_MENTEE
         )
@@ -83,6 +85,15 @@ class TaskService(
         task.markFeedbackAsRead()
 
         return taskFeedbackMapper.map(task)
+    }
+
+    @Transactional(readOnly = true)
+    fun getTaskDetail(userId: Long, taskId: Long): TaskDetailResponse {
+        val task = findTaskBy(taskId)
+
+        validateTaskOwnership(task, userId)
+
+        return taskDetailMapper.map(task)
     }
 
     @Transactional(readOnly = true)
@@ -114,13 +125,47 @@ class TaskService(
     fun updateCompleted(
         userId: Long,
         taskId: Long,
-        request: TaskCompleteUpdateRequest
+        request: TaskCompleteRequest
     ) {
         val task = findTaskBy(taskId)
 
         validateTaskOwnership(task, userId)
+        validateTaskCompletable(task, request.currentDate)
 
-        task.completed = request.completed
+        task.actualMinutes = request.actualMinutes
+        task.completed = true
+    }
+
+    @Transactional
+    fun updateActualMinutes(
+        userId: Long,
+        taskId: Long,
+        request: ActualMinutesUpdateRequest
+    ) {
+        val task = findTaskBy(taskId)
+
+        validateTaskOwnership(task, userId)
+        validateTaskCompleted(task)
+
+        task.actualMinutes = request.actualMinutes
+    }
+
+    @Transactional
+    fun deleteTaskByMentee(userId: Long, taskId: Long) {
+        val task = findTaskBy(taskId)
+
+        validateTaskOwnership(task, userId)
+        validateDeletableByMentee(task)
+
+        taskRepository.delete(task)
+    }
+
+    private fun validateTaskCompletable(task: Task, currentDate: LocalDate) {
+        val startDate = task.startDate ?: return
+
+        if (startDate.isAfter(currentDate)) {
+            throw IllegalStateException(CANNOT_COMPLETE_FUTURE_TASK.message)
+        }
     }
 
     private fun validateDate(
@@ -255,5 +300,13 @@ class TaskService(
 
     private fun validateTaskSubmittable(task: Task) {
         check(!task.hasFeedback()) { TASK_NOT_SUBMITTABLE.message }
+    }
+
+    private fun validateTaskCompleted(task: Task) {
+        check(task.completed) { INCOMPLETED_TASK.message }
+    }
+
+    private fun validateDeletableByMentee(task: Task) {
+        check(task.createdBy == UserRole.ROLE_MENTEE) { CANNOT_DELETE_MENTOR_CREATED_TASK.message }
     }
 }

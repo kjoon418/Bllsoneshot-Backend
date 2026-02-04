@@ -4,11 +4,13 @@ import goodspace.bllsoneshot.global.response.NO_CONTENT
 import goodspace.bllsoneshot.global.security.userId
 import goodspace.bllsoneshot.task.dto.request.MenteeTaskCreateRequest
 import goodspace.bllsoneshot.task.dto.request.MentorTaskCreateRequest
-import goodspace.bllsoneshot.task.dto.request.TaskCompleteUpdateRequest
+import goodspace.bllsoneshot.task.dto.request.ActualMinutesUpdateRequest
+import goodspace.bllsoneshot.task.dto.request.TaskCompleteRequest
 import goodspace.bllsoneshot.task.dto.request.TaskSubmitRequest
+import goodspace.bllsoneshot.task.dto.response.TaskDetailResponse
 import goodspace.bllsoneshot.task.dto.response.feedback.TaskFeedbackResponse
 import jakarta.validation.Valid
-import goodspace.bllsoneshot.task.dto.response.TaskSubmitResponse
+import goodspace.bllsoneshot.task.dto.response.submit.TaskSubmitResponse
 import goodspace.bllsoneshot.task.dto.response.TaskResponse
 import goodspace.bllsoneshot.task.service.TaskService
 import io.swagger.v3.oas.annotations.Operation
@@ -17,6 +19,7 @@ import java.security.Principal
 import java.time.LocalDate
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -48,10 +51,6 @@ class TaskController(
             [응답]
             createdBy: 할 일을 만든 사람(ROLE_MENTOR / ROLE_MENTEE)
             subject: 과목(KOREAN, ENGLISH, MATH)
-
-            [null 가능 속성]
-            generalComment: 피드백(총평) 미작성 시 null
-            actualMinutes: 실제 소요 시간 미기록 시 null
         """
     )
     fun getDailyTasks(
@@ -103,6 +102,26 @@ class TaskController(
         val userId = principal.userId
 
         val response = taskService.createTaskByMentee(userId, request)
+
+        return ResponseEntity.ok(response)
+    }
+
+    @GetMapping("/{taskId}/details")
+    @Operation(
+        summary = "할 일 상세조회(바텀시트)",
+        description = """
+            할 일의 상세 정보를 조회합니다.
+            
+            본인의 할 일만 조회할 수 있습니다.
+        """
+    )
+    fun getTaskDetails(
+        principal: Principal,
+        @PathVariable taskId: Long
+    ): ResponseEntity<TaskDetailResponse> {
+        val userId = principal.userId
+
+        val response = taskService.getTaskDetail(userId, taskId)
 
         return ResponseEntity.ok(response)
     }
@@ -176,9 +195,9 @@ class TaskController(
             proofShots, worksheets, columnLinks: 없으면 빈 배열
         """
     )
-    fun getTaskDetails(
+    fun getTaskFeedback(
         principal: Principal,
-        @PathVariable taskId: Long,
+        @PathVariable taskId: Long
     ): ResponseEntity<TaskFeedbackResponse> {
         val userId = principal.userId
 
@@ -187,24 +206,74 @@ class TaskController(
         return ResponseEntity.ok(response)
     }
 
-    @PatchMapping("/{taskId}")
+    @PatchMapping("/{taskId}/completed")
     @Operation(
-        summary = "할 일 완료 상태 수정",
+        summary = "할 일 완료",
         description = """
-            할 일의 완료 상태를 변경합니다.
-            시간을 기록하지 않은 할 일은 완료할 수 없습니다.
+            할 일을 완료합니다.
             
-            completed: 완료 여부(true/false)
+            미래의 할 일에 대해선 호출할 수 없습니다.
+            본인의 할 일에 대해서만 호출할 수 있습니다.
+            
+            [요청]
+            currentDate: 현재 날짜(yyyy-MM-dd)
+            actualMinutes: 학습 시간(분, 0 이상)
         """
     )
     fun updateCompleted(
         principal: Principal,
         @PathVariable taskId: Long,
-        @Valid @RequestBody request: TaskCompleteUpdateRequest
+        @RequestBody request: TaskCompleteRequest
     ): ResponseEntity<Void> {
         val userId = principal.userId
 
         taskService.updateCompleted(userId, taskId, request)
+
+        return NO_CONTENT
+    }
+
+    @PutMapping("/{taskId}/actual-minutes")
+    @Operation(
+        summary = "학습 시간 수정",
+        description = """
+            할 일의 학습 시간을 수정합니다.
+            
+            완료된 할 일에 대해서만 호출할 수 있습니다.
+            본인의 할 일에 대해서만 호출할 수 있습니다.
+            
+            [요청]
+            actualMinutes: 학습 시간(분, 0 이상)
+        """
+    )
+    fun updateActualMinutes(
+        principal: Principal,
+        @PathVariable taskId: Long,
+        @RequestBody request: ActualMinutesUpdateRequest
+    ): ResponseEntity<Void> {
+        val userId = principal.userId
+
+        taskService.updateActualMinutes(userId, taskId, request)
+
+        return NO_CONTENT
+    }
+
+    @DeleteMapping("/{taskId}/mentee")
+    @Operation(
+        summary = "할 일 삭제(멘티)",
+        description = """
+            할 일을 삭제합니다.
+            
+            멘티가 만든 할 일만 삭제할 수 있습니다.
+            본인의 할 일만 삭제할 수 있습니다.
+        """
+    )
+    fun deleteTaskByMentee(
+        principal: Principal,
+        @PathVariable taskId: Long
+    ): ResponseEntity<Void> {
+        val userId = principal.userId
+
+        taskService.deleteTaskByMentee(userId, taskId)
 
         return NO_CONTENT
     }
