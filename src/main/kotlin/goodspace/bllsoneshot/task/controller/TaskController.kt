@@ -5,6 +5,7 @@ import goodspace.bllsoneshot.global.security.userId
 import goodspace.bllsoneshot.task.dto.request.MenteeTaskCreateRequest
 import goodspace.bllsoneshot.task.dto.request.MentorTaskCreateRequest
 import goodspace.bllsoneshot.task.dto.request.ActualMinutesUpdateRequest
+import goodspace.bllsoneshot.task.dto.request.MenteeTaskUpdateRequest
 import goodspace.bllsoneshot.task.dto.request.TaskCompleteRequest
 import goodspace.bllsoneshot.task.dto.request.TaskSubmitRequest
 import goodspace.bllsoneshot.task.dto.response.TaskDetailResponse
@@ -103,6 +104,33 @@ class TaskController(
         val response = taskService.createTaskByMentee(userId, request)
 
         return ResponseEntity.ok(response)
+    }
+
+    @PutMapping("/mentee/{taskId}")
+    @Operation(
+        summary = "할 일 수정(멘티)",
+        description = """
+            할 일을 수정합니다.
+            
+            본인의 할 일에 대해서만 호출할 수 있습니다.
+            멘티에 의해 만들어진 할 일에 대해서만 호출할 수 있습니다.
+            피드백이 달린 할 일에 대해서도 호출할 수 있습니다.
+            
+            [요청]
+            taskName: 할 일의 이름입니다. 비어 있을 수 없습니다.
+            goalMinutes: 목표 시간(분)입니다. 0 이상이어야 합니다.
+        """
+    )
+    fun updateTaskByMentee(
+        principal: Principal,
+        @PathVariable taskId: Long,
+        @Valid @RequestBody request: MenteeTaskUpdateRequest
+    ): ResponseEntity<Void> {
+        val userId = principal.userId
+
+        taskService.updateTaskByMentee(userId, taskId, request)
+
+        return NO_CONTENT
     }
 
     @GetMapping("/{taskId}/details")
