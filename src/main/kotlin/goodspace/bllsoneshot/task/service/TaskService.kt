@@ -275,8 +275,14 @@ class TaskService(
     }
 
     private fun findTaskBy(taskId: Long): Task {
-        return taskRepository.findById(taskId)
+        val task = taskRepository.findById(taskId)
             .orElseThrow { IllegalArgumentException(TASK_NOT_FOUND.message) }
+
+        if (task.isResource) {
+            throw IllegalArgumentException(TASK_NOT_FOUND.message)
+        }
+
+        return task
     }
 
     private fun validateTaskOwnership(

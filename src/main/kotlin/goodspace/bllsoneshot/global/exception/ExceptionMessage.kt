@@ -27,5 +27,7 @@ enum class ExceptionMessage(
     REPORT_CONTENT_REQUIRED("총평, 잘한 점, 보완할 점은 최소 1개 이상입니다."),
     REPORT_CONTENT_CANNOT_BLANK("총평, 잘한 점, 보완할 점은 공백일 수 없습니다."),
     REPORT_SUBJECT_INVALID("리포트에 사용할 수 없는 과목입니다."),
-    REPORT_NOT_FOUND("학습 리포트를 찾을 수 없습니다.")
+    REPORT_NOT_FOUND("학습 리포트를 찾을 수 없습니다."),
+    RESOURCE_SUBJECT_INVALID("자료 과목은 KOREAN, ENGLISH, MATH 중 하나여야 합니다."),
+    RESOURCE_ACCESS_DENIED("해당 멘티의 자료에 대한 권한이 없습니다.")
 }

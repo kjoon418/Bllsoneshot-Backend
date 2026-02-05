@@ -39,38 +39,45 @@ jobs:
         run: |
           set -euo pipefail
 
-          sudo mkdir -p /opt/bllsoneshot
-          sudo chown -R "$USER:$USER" /opt/bllsoneshot
-          cd /opt/bllsoneshot
+          DEPLOY_DIR="${HOME}/bllsoneshot"
+          mkdir -p "$DEPLOY_DIR"
+          cd "$DEPLOY_DIR"
 
           cp "${GITHUB_WORKSPACE}/docker-compose.yml" ./docker-compose.yml
 
           # latest 기준 이미지
           IMAGE="ghcr.io/$(echo "$GITHUB_REPOSITORY" | tr '[:upper:]' '[:lower:]'):${{ github.event.workflow_run.head_sha }}"
 
-          cat > .env <<EOF
-          APP_PORT=${{ secrets.APP_PORT }}
-          SPRING_PROFILES_ACTIVE=${{ secrets.SPRING_PROFILES_ACTIVE }}
-          
-          MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}
-          MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}
-          MYSQL_USER=${{ secrets.MYSQL_USER }}
-          MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}
-          
-          SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }}
-          SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }}
-          SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}
-          
-          SPRING_DATA_REDIS_HOST=${{ secrets.SPRING_DATA_REDIS_HOST }}
-          SPRING_DATA_REDIS_PORT=${{ secrets.SPRING_DATA_REDIS_PORT }}
-          
-          CF_TUNNEL_TOKEN=${{ secrets.CF_TUNNEL_TOKEN }}
-          APP_IMAGE=$IMAGE
-          EOF
+          printf '%s\n' \
+            "APP_PORT=${{ secrets.APP_PORT }}" \
+            "SPRING_PROFILES_ACTIVE=${{ secrets.SPRING_PROFILES_ACTIVE }}" \
+            "" \
+            "MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}" \
+            "MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}" \
+            "MYSQL_USER=${{ secrets.MYSQL_USER }}" \
+            "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" \
+            "" \
+            "SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }}" \
+            "SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }}" \
+            "SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}" \
+            "" \
+            "SPRING_DATA_REDIS_HOST=${{ secrets.SPRING_DATA_REDIS_HOST }}" \
+            "SPRING_DATA_REDIS_PORT=${{ secrets.SPRING_DATA_REDIS_PORT }}" \
+            "" \
+            "KEYS_JWT_SECRET=${{ secrets.KEYS_JWT_SECRET }}" \
+            "CLOUD_AWS_CREDENTIALS_ACCESS_KEY=${{ secrets.CLOUD_AWS_CREDENTIALS_ACCESS_KEY }}" \
+            "CLOUD_AWS_CREDENTIALS_SECRET_KEY=${{ secrets.CLOUD_AWS_CREDENTIALS_SECRET_KEY }}" \
+            "CLOUD_AWS_BUCKET=${{ secrets.CLOUD_AWS_BUCKET }}" \
+            "CLOUD_AWS_CDN_URL=${{ secrets.CLOUD_AWS_CDN_URL }}" \
+            "" \
+            "CF_TUNNEL_TOKEN=${{ secrets.CF_TUNNEL_TOKEN }}" \
+            "APP_IMAGE=$IMAGE" \
+            > .env
 
           chmod 600 .env
 
           docker compose pull app
-          docker compose up -d --no-deps --force-recreate --pull always app
+          docker compose up -d --pull always mysql redis
+          docker compose up -d --force-recreate --pull always app
           docker compose ps
           docker compose logs --no-color --tail=120 app
