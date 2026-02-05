@@ -5,21 +5,18 @@ import goodspace.bllsoneshot.task.dto.response.feedback.FeedbackResponse
 import org.springframework.stereotype.Component
 
 @Component
-class FeedbackMapper {
+class FeedbackMapper(
+    private val commentAnnotationMapper: CommentAnnotationMapper
+) {
 
     fun map(comment: Comment): FeedbackResponse {
-        val annotation = comment.commentAnnotation
-
         return FeedbackResponse(
             feedbackId = comment.id!!,
-            feedbackNumber = annotation.number,
+            feedbackNumber = comment.commentAnnotation.number,
             content = comment.content,
             starred = comment.starred,
             registerStatus = comment.registerStatus,
-            annotationId = annotation.id!!,
-            annotationNumber = annotation.number,
-            percentX = annotation.percentX,
-            percentY = annotation.percentY
+            annotation = commentAnnotationMapper.map(comment.commentAnnotation)
         )
     }
 }

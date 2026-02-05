@@ -7,8 +7,5 @@ data class QuestionResponse(
     val content: String,
     val answer: String?,
 
-    val annotationId: Long,
-    val annotationNumber: Int,
-    val percentX: Double,
-    val percentY: Double
+    val annotation: CommentAnnotationResponse
 )

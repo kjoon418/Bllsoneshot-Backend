@@ -167,6 +167,8 @@ class TaskController(
             name: 할 일 이름
             subject: 과목(KOREAN, ENGLISH, MATH, RESOURCE)
             proofShots: 인증 사진 목록
+            percentX: 주석이 이미지 좌측에서부터 몇 % 떨어진 곳에 있는지 수치
+            percentY: 주석이 이미지 상단에서부터 몇 % 떨어진 곳에 있는지 수치
         """
     )
     fun getTaskForSubmit(
@@ -191,6 +193,10 @@ class TaskController(
             
             질문의 번호는 리스트의 순서대로 배정됩니다.
             (1부터 시작하는 오름차순)
+            
+            [응답]
+            percentX: 주석이 이미지 좌측에서부터 몇 % 떨어진 곳에 있는지 수치
+            percentY: 주석이 이미지 상단에서부터 몇 % 떨어진 곳에 있는지 수치
         """
     )
     fun submitTask(
@@ -210,16 +216,18 @@ class TaskController(
         summary = "피드백 조회",
         description = """
             ID를 기반으로 할 일의 피드백 정보를 조회합니다.
-            본인의 할 일에 대한 피드백만 조회할 수 있으며, 임시 저장 상태인 피드백은 조회되지 않습니다.
+            본인의 할 일에 대한 피드백만 조회할 수 있으며, 임시 저장 상태(TEMPORARY)인 피드백은 조회되지 않습니다.
             피드백이 있는 할 일에 대해서만 호출할 수 있습니다.
 
             [null 가능 속성]
             answer: 멘티 답변 미작성 시 null
-
-            [빈 문자열/빈 배열]
-            mentorName: 멘토 미배정 시 빈 문자열
-            generalComment: 총평 미작성 시 빈 문자열
-            proofShots, worksheets, columnLinks: 없으면 빈 배열
+            
+            [응답]
+            starred: 해당 피드백이 중요하다고 표시되었는지 여부
+            annotation: 이미지 위에 표시되는 주석
+            percentX: 주석이 이미지 좌측에서부터 몇 % 떨어진 곳에 있는지 수치
+            percentY: 주석이 이미지 상단에서부터 몇 % 떨어진 곳에 있는지 수치
+            registerStatus: 피드백 등록 상태(TEMPORARY, REGISTERED)
         """
     )
     fun getTaskFeedback(

@@ -10,8 +10,5 @@ data class FeedbackResponse(
     val starred: Boolean,
     val registerStatus: RegisterStatus,
 
-    val annotationId: Long,
-    val annotationNumber: Int,
-    val percentX: Double,
-    val percentY: Double
+    val annotation: CommentAnnotationResponse
 )
