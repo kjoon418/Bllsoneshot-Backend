@@ -30,10 +30,10 @@ class Task(
     val dueDate: LocalDate?,
 
     @Column(nullable = false)
-    val name: String,
+    var name: String,
 
     @Column(nullable = false)
-    val goalMinutes: Int,
+    var goalMinutes: Int,
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

@@ -178,6 +178,17 @@ class TaskService(
     }
 
     @Transactional
+    fun updateTaskByMentee(userId: Long, taskId: Long, request: MenteeTaskUpdateRequest) {
+        val task = findTaskBy(taskId)
+
+        validateTaskOwnership(task, userId)
+        validateUpdatableByMentee(task)
+
+        task.name = request.taskName
+        task.goalMinutes = request.goalMinutes
+    }
+
+    @Transactional
     fun deleteTaskByMentee(userId: Long, taskId: Long) {
         val task = findTaskBy(taskId)
 
@@ -268,5 +279,9 @@ class TaskService(
 
     private fun validateDeletableByMentee(task: Task) {
         check(task.createdBy == UserRole.ROLE_MENTEE) { CANNOT_DELETE_MENTOR_CREATED_TASK.message }
+    }
+
+    private fun validateUpdatableByMentee(task: Task) {
+        check(task.createdBy == UserRole.ROLE_MENTEE) { CANNOT_UPDATE_MENTOR_CREATED_TASK.message }
     }
 }
