@@ -39,9 +39,9 @@ jobs:
         run: |
           set -euo pipefail
 
-          sudo mkdir -p /opt/bllsoneshot
-          sudo chown -R "$USER:$USER" /opt/bllsoneshot
-          cd /opt/bllsoneshot
+          DEPLOY_DIR="${HOME}/bllsoneshot"
+          mkdir -p "$DEPLOY_DIR"
+          cd "$DEPLOY_DIR"
 
           cp "${GITHUB_WORKSPACE}/docker-compose.yml" ./docker-compose.yml
 
