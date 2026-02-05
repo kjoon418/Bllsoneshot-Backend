@@ -3,19 +3,18 @@ package goodspace.bllsoneshot.task.controller
 import goodspace.bllsoneshot.global.response.NO_CONTENT
 import goodspace.bllsoneshot.global.security.userId
 import goodspace.bllsoneshot.task.dto.request.MenteeTaskCreateRequest
-import goodspace.bllsoneshot.task.dto.request.MentorTaskCreateRequest
-import goodspace.bllsoneshot.task.dto.request.ActualMinutesUpdateRequest
 import goodspace.bllsoneshot.task.dto.request.MenteeTaskUpdateRequest
+import goodspace.bllsoneshot.task.dto.request.MentorTaskCreateRequest
 import goodspace.bllsoneshot.task.dto.request.TaskCompleteRequest
 import goodspace.bllsoneshot.task.dto.request.TaskSubmitRequest
 import goodspace.bllsoneshot.task.dto.response.TaskDetailResponse
-import goodspace.bllsoneshot.task.dto.response.feedback.TaskFeedbackResponse
-import jakarta.validation.Valid
-import goodspace.bllsoneshot.task.dto.response.submit.TaskSubmitResponse
 import goodspace.bllsoneshot.task.dto.response.TaskResponse
+import goodspace.bllsoneshot.task.dto.response.feedback.TaskFeedbackResponse
+import goodspace.bllsoneshot.task.dto.response.submit.TaskSubmitResponse
 import goodspace.bllsoneshot.task.service.TaskService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.validation.Valid
 import java.security.Principal
 import java.time.LocalDate
 import org.springframework.format.annotation.DateTimeFormat
@@ -255,31 +254,6 @@ class TaskController(
         val userId = principal.userId
 
         taskService.updateCompleted(userId, taskId, request)
-
-        return NO_CONTENT
-    }
-
-    @PutMapping("/{taskId}/actual-minutes")
-    @Operation(
-        summary = "학습 시간 수정",
-        description = """
-            할 일의 학습 시간을 수정합니다.
-            
-            완료된 할 일에 대해서만 호출할 수 있습니다.
-            본인의 할 일에 대해서만 호출할 수 있습니다.
-            
-            [요청]
-            actualMinutes: 학습 시간(분, 0 이상)
-        """
-    )
-    fun updateActualMinutes(
-        principal: Principal,
-        @PathVariable taskId: Long,
-        @RequestBody request: ActualMinutesUpdateRequest
-    ): ResponseEntity<Void> {
-        val userId = principal.userId
-
-        taskService.updateActualMinutes(userId, taskId, request)
 
         return NO_CONTENT
     }

@@ -136,20 +136,6 @@ class TaskService(
     }
 
     @Transactional
-    fun updateActualMinutes(
-        userId: Long,
-        taskId: Long,
-        request: ActualMinutesUpdateRequest
-    ) {
-        val task = findTaskBy(taskId)
-
-        validateTaskOwnership(task, userId)
-        validateTaskCompleted(task)
-
-        task.actualMinutes = request.actualMinutes
-    }
-
-    @Transactional
     fun updateTaskByMentee(userId: Long, taskId: Long, request: MenteeTaskUpdateRequest) {
         val task = findTaskBy(taskId)
 
@@ -279,10 +265,6 @@ class TaskService(
 
     private fun validateTaskSubmittable(task: Task) {
         check(!task.hasFeedback()) { TASK_NOT_SUBMITTABLE.message }
-    }
-
-    private fun validateTaskCompleted(task: Task) {
-        check(task.completed) { INCOMPLETED_TASK.message }
     }
 
     private fun validateDeletableByMentee(task: Task) {
