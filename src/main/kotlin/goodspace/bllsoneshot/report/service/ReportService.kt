@@ -9,6 +9,7 @@ import goodspace.bllsoneshot.repository.user.LearningReportRepository
 import goodspace.bllsoneshot.repository.user.UserRepository
 import goodspace.bllsoneshot.report.dto.request.ReportCreateRequest
 import goodspace.bllsoneshot.report.dto.response.ReportAmountResponse
+import goodspace.bllsoneshot.report.dto.response.ReportExistResponse
 import goodspace.bllsoneshot.report.dto.response.ReportExistsResponse
 import goodspace.bllsoneshot.report.dto.response.ReportResponse
 import goodspace.bllsoneshot.report.mapper.ReportExistsMapper
@@ -107,9 +108,16 @@ class ReportService(
 
     @Transactional(readOnly = true)
     fun getReceivedReportAmount(menteeId: Long, date: LocalDate): ReportAmountResponse {
-        val count = learningReportRepository.countByMenteeIdContainingDate(menteeId, date)
+        val count = learningReportRepository.countByMenteeIdAndDate(menteeId, date)
 
         return ReportAmountResponse(amount = count.toInt())
+    }
+
+    @Transactional(readOnly = true)
+    fun getReportExistSubjects(menteeId: Long, date: LocalDate): ReportExistResponse {
+        val subjects = learningReportRepository.findSubjectsByMenteeIdAndDate(menteeId, date)
+
+        return ReportExistResponse(subjects = subjects)
     }
 
     private fun findUserBy(userId: Long): User {
