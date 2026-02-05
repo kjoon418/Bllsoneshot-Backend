@@ -253,8 +253,8 @@ class TaskService(
                 val annotation = CommentAnnotation(
                     proofShot = proofShot,
                     number = index + 1,
-                    percentX = question.percentX.toDouble(),
-                    percentY = question.percentY.toDouble()
+                    percentX = question.percentX,
+                    percentY = question.percentY
                 )
                 val comment = Comment(
                     task = task,
@@ -312,6 +312,6 @@ class TaskService(
         mentorId: Long,
         mentee: User
     ) {
-        check(mentee.mentor?.id == mentorId) { ExceptionMessage.MENTEE_ACCESS_DENIED.message }
+        check(mentee.mentor?.id == mentorId) { MENTEE_ACCESS_DENIED.message }
     }
 }
