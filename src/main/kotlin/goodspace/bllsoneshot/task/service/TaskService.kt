@@ -3,11 +3,13 @@ package goodspace.bllsoneshot.task.service
 import goodspace.bllsoneshot.entity.assignment.*
 import goodspace.bllsoneshot.entity.user.User
 import goodspace.bllsoneshot.entity.user.UserRole
+import goodspace.bllsoneshot.global.exception.ExceptionMessage
 import goodspace.bllsoneshot.global.exception.ExceptionMessage.*
 import goodspace.bllsoneshot.repository.file.FileRepository
 import goodspace.bllsoneshot.repository.task.TaskRepository
 import goodspace.bllsoneshot.repository.user.UserRepository
 import goodspace.bllsoneshot.task.dto.request.*
+import goodspace.bllsoneshot.task.dto.response.TaskByDateResponse
 import goodspace.bllsoneshot.task.dto.response.TaskDetailResponse
 import goodspace.bllsoneshot.task.dto.response.submit.TaskSubmitResponse
 import goodspace.bllsoneshot.task.dto.response.TasksResponse
@@ -42,6 +44,28 @@ class TaskService(
         val tasks = taskRepository.findCurrentTasks(userId, date)
 
         return tasksMapper.map(tasks)
+    }
+
+    @Transactional(readOnly = true)
+    fun findTasksOfMentee(
+        mentorId: Long,
+        menteeId: Long,
+        startDate: LocalDate,
+        endDate: LocalDate
+    ): List<TaskByDateResponse> {
+        val mentee = userRepository.findById(menteeId)
+            .orElseThrow { IllegalArgumentException(USER_NOT_FOUND.message) }
+
+        validateAssignedMentee(mentorId, mentee)
+
+        // TODO: 나중에 task.isResources로 필터링하도록 수정
+        val tasks = taskRepository.findDateBetweenTasks(
+            menteeId = menteeId,
+            startDate = startDate,
+            endDate = endDate
+        )
+
+        return taskMapper.mapByDate(tasks)
     }
 
     @Transactional
@@ -276,5 +300,12 @@ class TaskService(
 
     private fun validateUpdatableByMentee(task: Task) {
         check(task.createdBy == UserRole.ROLE_MENTEE) { CANNOT_UPDATE_MENTOR_CREATED_TASK.message }
+    }
+
+    private fun validateAssignedMentee(
+        mentorId: Long,
+        mentee: User
+    ) {
+        check(mentee.mentor?.id == mentorId) { ExceptionMessage.MENTEE_ACCESS_DENIED.message }
     }
 }
