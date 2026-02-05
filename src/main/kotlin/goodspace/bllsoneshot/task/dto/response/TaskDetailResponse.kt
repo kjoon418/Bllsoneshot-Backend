@@ -14,6 +14,7 @@ data class TaskDetailResponse(
     val goalMinutes: Int,
     val actualMinutes: Int?,
 
+    val hasFeedback: Boolean,
     val generalComment: String?,
     val mentorName: String,
 

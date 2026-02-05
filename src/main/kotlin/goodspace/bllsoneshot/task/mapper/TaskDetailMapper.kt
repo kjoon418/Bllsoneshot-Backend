@@ -18,6 +18,7 @@ class TaskDetailMapper(
             subject = task.subject,
             goalMinutes = task.goalMinutes,
             actualMinutes = task.actualMinutes,
+            hasFeedback = task.hasFeedback(),
             generalComment = task.generalComment?.content,
             mentorName = task.mentee.mentor?.name ?: "",
             worksheets = task.worksheets.map { worksheetMapper.map(it) },
