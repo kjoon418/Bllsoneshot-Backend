@@ -25,4 +25,13 @@ enum class ExceptionMessage(
     TASK_NAMES_REQUIRED("할 일 이름은 최소 1개 이상이어야 합니다."),
     TASK_NAME_BLANK("할 일 이름이 비어 있습니다."),
     TASK_NAME_TOO_LONG("할 일 이름은 50자를 초과할 수 없습니다.")
+    MENTEE_ACCESS_DENIED("담당 멘티가 아닙니다."),
+    REPORT_DUPLICATE("동일한 기간과 과목의 학습 리포트가 이미 존재합니다."),
+    REPORT_DATE_INVALID("시작일은 종료일 이후일 수 없습니다."),
+    REPORT_CONTENT_REQUIRED("총평, 잘한 점, 보완할 점은 최소 1개 이상입니다."),
+    REPORT_CONTENT_CANNOT_BLANK("총평, 잘한 점, 보완할 점은 공백일 수 없습니다."),
+    REPORT_SUBJECT_INVALID("리포트에 사용할 수 없는 과목입니다."),
+    REPORT_NOT_FOUND("학습 리포트를 찾을 수 없습니다."),
+    RESOURCE_SUBJECT_INVALID("자료 과목은 KOREAN, ENGLISH, MATH 중 하나여야 합니다."),
+    RESOURCE_ACCESS_DENIED("해당 멘티의 자료에 대한 권한이 없습니다.")
 }

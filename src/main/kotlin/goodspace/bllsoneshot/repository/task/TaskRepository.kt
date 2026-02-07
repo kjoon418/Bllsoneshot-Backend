@@ -17,6 +17,7 @@ interface TaskRepository : JpaRepository<Task, Long> {
         SELECT t FROM Task t
         WHERE t.mentee.id = :userId
         AND t.date = :date
+        AND t.isResource = false
         """
     )
     fun findCurrentTasks(userId: Long, date: LocalDate): List<Task>
@@ -24,8 +25,22 @@ interface TaskRepository : JpaRepository<Task, Long> {
     @Query(
         """
         SELECT t FROM Task t
+        WHERE t.mentee.id = :menteeId
+        AND t.date BETWEEN :startDate AND :endDate
+        """
+    )
+    fun findDateBetweenTasks(
+        menteeId: Long,
+        startDate: LocalDate,
+        endDate: LocalDate
+    ): List<Task>
+
+    @Query(
+        """
+        SELECT t FROM Task t
         WHERE t.mentee.id = :userId AND t.subject = :subject
         AND t.date < :date
+        AND t.isResource = false
         """
     )
     fun findPreviousTasks(userId: Long, subject: Subject, date: LocalDate): List<Task>
@@ -38,6 +53,7 @@ interface TaskRepository : JpaRepository<Task, Long> {
         LEFT JOIN FETCH t.generalComment
         LEFT JOIN FETCH t.proofShots
         WHERE t.id = :taskId
+        AND t.isResource = false
         """
     )
     fun findByIdWithMenteeAndGeneralCommentAndProofShots(taskId: Long): Task?
@@ -62,6 +78,7 @@ interface TaskRepository : JpaRepository<Task, Long> {
         JOIN t.proofShots ps
         WHERE m.mentor.id = :mentorId
         AND t.date = :date
+        AND t.isResource = false
         AND NOT EXISTS (
             SELECT c 
             FROM Comment c
@@ -90,6 +107,7 @@ interface TaskRepository : JpaRepository<Task, Long> {
         LEFT JOIN t.proofShots ps
         WHERE m.mentor.id = :mentorId
         AND t.date = :date
+        AND t.isResource = false
         AND ps.id IS NULL
         ORDER BY m.name
         """
@@ -98,4 +116,15 @@ interface TaskRepository : JpaRepository<Task, Long> {
         mentorId: Long,
         date: LocalDate
     ): List<PendingUploadMenteeResponse>
+
+    @Query(
+        """
+        SELECT DISTINCT t FROM Task t
+        LEFT JOIN FETCH t.worksheets
+        WHERE t.mentee.id = :menteeId
+        AND t.isResource = true
+        ORDER BY t.date DESC, t.id DESC
+        """
+    )
+    fun findResourcesByMenteeId(menteeId: Long): List<Task>
 }

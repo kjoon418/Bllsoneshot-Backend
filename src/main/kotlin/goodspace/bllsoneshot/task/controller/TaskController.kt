@@ -7,6 +7,7 @@ import goodspace.bllsoneshot.task.dto.request.MenteeTaskUpdateRequest
 import goodspace.bllsoneshot.task.dto.request.MentorTaskCreateRequest
 import goodspace.bllsoneshot.task.dto.request.TaskCompleteRequest
 import goodspace.bllsoneshot.task.dto.request.TaskSubmitRequest
+import goodspace.bllsoneshot.task.dto.response.TaskByDateResponse
 import goodspace.bllsoneshot.task.dto.response.TaskDetailResponse
 import goodspace.bllsoneshot.task.dto.response.TaskResponse
 import goodspace.bllsoneshot.task.dto.response.TasksResponse
@@ -63,6 +64,40 @@ class TaskController(
         val userId = principal.userId
 
         val response = taskService.findTasksByDate(userId, date)
+
+        return ResponseEntity.ok(response)
+    }
+
+    @GetMapping("/mentee/{menteeId}")
+    @Operation(
+        summary = "멘티의 할 일 목록 조회(기간 조회)",
+        description = """
+            해당 기간 내의 할 일을 조회합니다.
+            
+            담당 멘티에 대해서만 호출할 수 있습니다.
+            자료는 조회하지 않습니다.
+            
+            DTO는 날짜 순서대로 정렬됩니다.
+
+            [요청]
+            startDate: 조회 시작 날짜(yyyy-MM-dd)
+            endDate: 조회 종료 날짜(yyyy-MM-dd)
+
+            [응답]
+            date: 할 일의 날짜(yyyy-MM-dd)
+            createdBy: 할 일을 만든 사람(ROLE_MENTOR / ROLE_MENTEE)
+            subject: 과목(KOREAN, ENGLISH, MATH)
+        """
+    )
+    fun getTasksOfMentee(
+        principal: Principal,
+        @PathVariable menteeId: Long,
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) startDate: LocalDate,
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) endDate: LocalDate
+    ): ResponseEntity<List<TaskByDateResponse>> {
+        val mentorId = principal.userId
+
+        val response = taskService.findTasksOfMentee(mentorId, menteeId, startDate, endDate)
 
         return ResponseEntity.ok(response)
     }

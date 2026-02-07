@@ -36,5 +36,8 @@ class User(
     @OneToMany(mappedBy = "mentee", fetch = FetchType.LAZY)
     val subjects: MutableList<MenteeSubject> = mutableListOf()
 
+    @OneToMany(mappedBy = "mentee", fetch = FetchType.LAZY)
+    val reports: MutableList<LearningReport> = mutableListOf()
+
     var refreshToken: String? = null
 }

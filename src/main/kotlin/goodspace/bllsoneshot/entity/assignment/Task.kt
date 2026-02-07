@@ -5,6 +5,7 @@ import goodspace.bllsoneshot.entity.user.User
 import goodspace.bllsoneshot.entity.user.UserRole
 import goodspace.bllsoneshot.global.exception.ExceptionMessage.NEGATIVE_ACTUAL_MINUTES
 import jakarta.persistence.*
+import org.hibernate.annotations.BatchSize
 import java.time.LocalDate
 
 @Entity
@@ -27,12 +28,16 @@ class Task(
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    val createdBy: UserRole
+    val createdBy: UserRole,
+
+    @Column(nullable = false)
+    val isResource: Boolean = false
 ) : BaseEntity() {
     // Task 저장시 연관 엔티티도 함게 저장, 삭제되도록 cascade 및 orphanRemoval 설정
     @OneToMany(mappedBy = "task", fetch = FetchType.LAZY, cascade = [CascadeType.PERSIST, CascadeType.REMOVE], orphanRemoval = true)
     val worksheets: MutableList<Worksheet> = mutableListOf()
 
+    @BatchSize(size = 50)
     @OneToMany(mappedBy = "task", fetch = FetchType.LAZY, cascade = [CascadeType.PERSIST, CascadeType.REMOVE], orphanRemoval = true)
     val columnLinks: MutableList<ColumnLink> = mutableListOf()
 
