@@ -24,7 +24,7 @@ enum class ExceptionMessage(
     MENTOR_MENTEE_RELATION_DENIED("해당 멘티에 대한 권한이 없습니다."),
     TASK_NAMES_REQUIRED("할 일 이름은 최소 1개 이상이어야 합니다."),
     TASK_NAME_BLANK("할 일 이름이 비어 있습니다."),
-    TASK_NAME_TOO_LONG("할 일 이름은 50자를 초과할 수 없습니다.")
+    TASK_NAME_TOO_LONG("할 일 이름은 50자를 초과할 수 없습니다."),
     MENTEE_ACCESS_DENIED("담당 멘티가 아닙니다."),
     REPORT_DUPLICATE("동일한 기간과 과목의 학습 리포트가 이미 존재합니다."),
     REPORT_DATE_INVALID("시작일은 종료일 이후일 수 없습니다."),
