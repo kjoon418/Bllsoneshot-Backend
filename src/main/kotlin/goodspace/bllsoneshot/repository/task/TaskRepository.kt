@@ -119,6 +119,47 @@ interface TaskRepository : JpaRepository<Task, Long> {
 
     @Query(
         """
+        SELECT COUNT(DISTINCT t.id)
+        FROM Task t
+        LEFT JOIN t.proofShots ps
+        WHERE t.mentee.mentor.id = :mentorId
+        AND t.date = :date
+        AND t.isResource = false
+        AND ps.id IS NULL
+        """
+    )
+    fun countUnfinishedTasks(mentorId: Long, date: LocalDate): Long
+
+    @Query(
+        """
+        SELECT DISTINCT t.mentee.id
+        FROM Task t
+        LEFT JOIN t.proofShots ps
+        WHERE t.mentee.id IN :menteeIds
+        AND t.date = :date
+        AND t.isResource = false
+        AND ps.id IS NULL
+        """
+    )
+    fun findMenteeIdsWithUnsubmittedTasks(menteeIds: List<Long>, date: LocalDate): List<Long>
+
+    @Query(
+        """
+        SELECT t FROM Task t
+        WHERE t.mentee.id IN :menteeIds
+        AND t.isResource = false
+        AND t.date = (
+            SELECT MAX(t2.date) FROM Task t2
+            WHERE t2.mentee = t.mentee
+            AND t2.isResource = false
+        )
+        ORDER BY t.mentee.id, t.id DESC
+        """
+    )
+    fun findMostRecentTasksByMenteeIds(menteeIds: List<Long>): List<Task>
+
+    @Query(
+        """
         SELECT DISTINCT t FROM Task t
         LEFT JOIN FETCH t.worksheets
         WHERE t.mentee.id = :menteeId
