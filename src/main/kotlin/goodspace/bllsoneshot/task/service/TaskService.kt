@@ -329,12 +329,14 @@ class TaskService(
         check(task.createdBy == UserRole.ROLE_MENTEE) { CANNOT_UPDATE_MENTOR_CREATED_TASK.message }
     }
 
-    companion object {
-        private const val MAX_TASK_NAME_LENGTH = 50
     private fun validateAssignedMentee(
         mentorId: Long,
         mentee: User
     ) {
         check(mentee.mentor?.id == mentorId) { MENTEE_ACCESS_DENIED.message }
+    }
+
+    companion object {
+        private const val MAX_TASK_NAME_LENGTH = 50
     }
 }
