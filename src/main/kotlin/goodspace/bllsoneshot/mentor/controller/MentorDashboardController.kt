@@ -87,14 +87,7 @@ class MentorDashboardController(
             totalMenteeCount: 전체 멘티 수
             submittedMenteeCount: 제출 완료 멘티 수
             notSubmittedMenteeCount: 미제출 멘티 수
-            mentees: 멘티 상세 목록
-              - menteeId: 멘티 ID
-              - menteeName: 멘티 이름
-              - grade: 학년(예: 고등학교 2학년)
-              - subjects: 수강 과목 목록(KOREAN, ENGLISH, MATH)
-              - recentTaskDate: 가장 최근 학습 기록 날짜
-              - recentTaskName: 가장 최근 학습 기록 과제명
-              - submitted: 해당 날짜 기준 제출 완료 여부
+            mentees: 멘티 상세 목록 리스트
         """
     )
     fun getMenteeManagementList(
