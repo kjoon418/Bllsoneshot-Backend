@@ -19,68 +19,83 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
-@PreAuthorize("hasRole('MENTOR')")
+@Tag(name = "Mentor Task", description = "멘토 - 할 일 관리")
 @RestController
 @RequestMapping("/mentors/tasks")
-@Tag(name = "멘토 할 일 관리 API")
+@PreAuthorize("hasRole('MENTOR')")
 class MentorTaskController(
     private val mentorTaskService: MentorTaskService
 ) {
 
     @GetMapping("/{taskId}")
     @Operation(
-        summary = "멘토 할 일 상세 조회 (피드백 작성/조회 화면)",
+        summary = "멘토 할 일 상세 조회",
         description = """
-            멘토가 담당 멘티의 할 일 상세 정보를 조회합니다.
-            인증 사진, 멘티의 질문, 작성된 피드백(임시저장 포함)을 모두 포함합니다.
+            멘토가 멘티의 할 일을 상세 조회합니다.
+            인증 사진, 멘티의 질문, 멘토의 피드백(임시저장 포함)을 모두 반환합니다.
             
-            [응답]
-            hasFeedback: 최종 등록(REGISTERED)된 피드백 존재 여부
+            응답 필드:
+            generalComment: 멘토의 총평 (null이면 아직 작성하지 않음)
             hasProofShot: 학생 인증 사진 제출 여부
-            proofShots.feedbacks: 임시저장(TEMPORARY) + 최종저장(REGISTERED) 피드백 모두 포함
+            proofShots.feedbacks: 임시저장(TEMPORARY) + 확정저장(CONFIRMED) 피드백 모두 포함
         """
     )
-    fun getTaskForFeedback(
-        principal: Principal,
-        @PathVariable taskId: Long
+    fun getTaskDetail(
+        @PathVariable taskId: Long,
+        principal: Principal
     ): ResponseEntity<MentorTaskDetailResponse> {
-        val mentorId = principal.userId
-        val response = mentorTaskService.getTaskForFeedback(mentorId, taskId)
-        return ResponseEntity.ok(response)
+        val result = mentorTaskService.getTaskForFeedback(principal.userId, taskId)
+        return ResponseEntity.ok(result)
+    }
+
+    @PutMapping("/{taskId}/feedback/temporary")
+    @Operation(
+        summary = "멘토 피드백 임시저장",
+        description = """
+            멘토가 작성 중인 피드백을 임시저장합니다.
+            프론트에서 자동 저장(debounce) 시 이 API를 호출해 주시면 됩니다.
+            
+            임시저장은 검증이 느슨합니다:
+            - 총평이 비어 있어도 됩니다.
+            - 상세 피드백 내용이 비어 있어도 됩니다.
+            - 총평 최대 200자 제한만 적용됩니다.
+            
+            요청 필드:
+            generalComment: 멘토의 총평 (최대 200자, null 가능)
+            proofShotFeedbacks: 인증 사진별 피드백 목록
+        """
+    )
+    fun saveTemporary(
+        @PathVariable taskId: Long,
+        @RequestBody request: MentorFeedbackRequest,
+        principal: Principal
+    ): ResponseEntity<Void> {
+        mentorTaskService.saveTemporary(principal.userId, taskId, request)
+        return NO_CONTENT
     }
 
     @PutMapping("/{taskId}/feedback")
     @Operation(
-        summary = "피드백 저장 (임시저장/최종저장)",
+        summary = "멘토 피드백 최종 저장",
         description = """
-            멘토가 멘티의 할 일에 피드백을 저장합니다.
-            기존 피드백은 모두 교체됩니다.
+            멘토가 피드백을 최종 저장합니다.
+            멘티에게 피드백이 공개되며, 이후 수정은 이 API를 다시 호출합니다.
             
-            registerStatus가 TEMPORARY이면 임시저장(자동 저장),
-            REGISTERED이면 최종 피드백 저장입니다.
+            최종 저장은 검증이 엄격합니다:
+            - 총평은 필수이며 최대 200자입니다.
+            - 상세 피드백 내용이 비어 있으면 안 됩니다.
             
-            최종 저장(REGISTERED) 시 generalComment는 필수입니다.
-            피드백 번호는 proofShotFeedbacks 내 feedbacks 리스트 순서대로 1부터 배정됩니다.
-            
-            [요청]
-            generalComment: 멘토의 총평 (최대 200자, null 가능)
-            registerStatus: TEMPORARY(임시저장) / REGISTERED(최종저장)
+            요청 필드:
+            generalComment: 멘토의 총평 (필수, 최대 200자)
             proofShotFeedbacks: 인증 사진별 피드백 목록
-              - proofShotId: 인증 사진 ID
-              - feedbacks: 상세 피드백 목록
-                - content: 피드백 내용
-                - starred: 중요 표시 여부
-                - percentX: 이미지 좌측 기준 주석 위치 (%)
-                - percentY: 이미지 상단 기준 주석 위치 (%)
         """
     )
     fun saveFeedback(
-        principal: Principal,
         @PathVariable taskId: Long,
-        @RequestBody request: MentorFeedbackRequest
+        @RequestBody request: MentorFeedbackRequest,
+        principal: Principal
     ): ResponseEntity<Void> {
-        val mentorId = principal.userId
-        mentorTaskService.saveFeedback(mentorId, taskId, request)
+        mentorTaskService.saveFeedback(principal.userId, taskId, request)
         return NO_CONTENT
     }
 
@@ -88,20 +103,19 @@ class MentorTaskController(
     @Operation(
         summary = "멘토 할 일 수정",
         description = """
-            멘토가 담당 멘티의 할 일을 수정합니다.
+            멘토가 할 일의 이름과 목표 시간을 수정합니다.
             
-            [요청]
-            taskName: 할 일 이름 (비어 있을 수 없음)
-            goalMinutes: 목표 시간(분, 0 이상)
+            요청 필드:
+            taskName: 할 일 이름 (필수)
+            goalMinutes: 목표 시간 (분, 0 이상)
         """
     )
     fun updateTask(
-        principal: Principal,
         @PathVariable taskId: Long,
-        @Valid @RequestBody request: MentorTaskUpdateRequest
+        @Valid @RequestBody request: MentorTaskUpdateRequest,
+        principal: Principal
     ): ResponseEntity<Void> {
-        val mentorId = principal.userId
-        mentorTaskService.updateTask(mentorId, taskId, request)
+        mentorTaskService.updateTask(principal.userId, taskId, request)
         return NO_CONTENT
     }
 }

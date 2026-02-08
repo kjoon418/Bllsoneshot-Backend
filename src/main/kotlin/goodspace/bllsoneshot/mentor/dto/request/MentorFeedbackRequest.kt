@@ -1,10 +1,7 @@
 package goodspace.bllsoneshot.mentor.dto.request
 
-import goodspace.bllsoneshot.entity.assignment.RegisterStatus
-
 data class MentorFeedbackRequest(
     val generalComment: String?,
-    val registerStatus: RegisterStatus,
     val proofShotFeedbacks: List<ProofShotFeedbackRequest> = emptyList()
 )
 
