@@ -7,10 +7,10 @@ import goodspace.bllsoneshot.task.dto.request.MenteeTaskUpdateRequest
 import goodspace.bllsoneshot.task.dto.request.MentorTaskCreateRequest
 import goodspace.bllsoneshot.task.dto.request.TaskCompleteRequest
 import goodspace.bllsoneshot.task.dto.request.TaskSubmitRequest
-import goodspace.bllsoneshot.task.dto.response.TaskByDateResponse
-import goodspace.bllsoneshot.task.dto.response.TaskDetailResponse
-import goodspace.bllsoneshot.task.dto.response.TaskResponse
-import goodspace.bllsoneshot.task.dto.response.TasksResponse
+import goodspace.bllsoneshot.task.dto.response.task.TaskByDateResponse
+import goodspace.bllsoneshot.task.dto.response.task.TaskDetailResponse
+import goodspace.bllsoneshot.task.dto.response.task.TaskResponse
+import goodspace.bllsoneshot.task.dto.response.task.TasksResponse
 import goodspace.bllsoneshot.task.dto.response.feedback.TaskFeedbackResponse
 import goodspace.bllsoneshot.task.dto.response.submit.TaskSubmitResponse
 import goodspace.bllsoneshot.task.service.TaskService

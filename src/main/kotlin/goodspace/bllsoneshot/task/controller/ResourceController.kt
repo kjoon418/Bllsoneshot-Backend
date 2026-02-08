@@ -3,8 +3,8 @@ package goodspace.bllsoneshot.task.controller
 import goodspace.bllsoneshot.global.security.userId
 import goodspace.bllsoneshot.task.dto.request.ResourceCreateRequest
 import goodspace.bllsoneshot.task.dto.request.ResourceUpdateRequest
-import goodspace.bllsoneshot.task.dto.response.ResourceResponse
-import goodspace.bllsoneshot.task.dto.response.ResourcesResponse
+import goodspace.bllsoneshot.task.dto.response.submit.ResourceResponse
+import goodspace.bllsoneshot.task.dto.response.resource.ResourceSummaryResponse
 import goodspace.bllsoneshot.task.service.ResourceService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -41,16 +41,45 @@ class ResourceController(
 
             [응답]
             resourceId: 자료 ID
-            subject: 과목(KOREAN, ENGLISH, MATH)
+            resourceName: 자료 이름
             registeredDate: 등록일
+            subject: 과목(KOREAN, ENGLISH, MATH)
         """
     )
     fun getResources(
         principal: Principal,
         @RequestParam menteeId: Long
-    ): ResponseEntity<ResourcesResponse> {
+    ): ResponseEntity<List<ResourceSummaryResponse>> {
         val mentorId = principal.userId
         val response = resourceService.getResources(mentorId, menteeId)
+        return ResponseEntity.ok(response)
+    }
+
+    @GetMapping("/{resourceId}")
+    @Operation(
+        summary = "자료 상세 조회",
+        description = """
+            특정 멘티의 자료 하나를 상세 조회합니다.
+            
+            [요청]
+            resourceId: 자료 ID
+
+            [응답]
+            resourceId: 자료 ID
+            subject: 과목(KOREAN, ENGLISH, MATH)
+            resourceName: 자료 이름
+            registeredDate: 등록일
+            worksheets: 학습 자료(워크시트) 목록
+            columnLinks: 학습 자료(칼럼 링크) 목록
+        """
+    )
+    fun getResourceDetail(
+        principal: Principal,
+        @RequestParam resourceId: Long
+    ): ResponseEntity<ResourceResponse> {
+        val mentorId = principal.userId
+        val response = resourceService.getResourceDetail(mentorId, resourceId)
+
         return ResponseEntity.ok(response)
     }
 

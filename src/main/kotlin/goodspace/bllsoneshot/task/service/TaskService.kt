@@ -8,11 +8,11 @@ import goodspace.bllsoneshot.repository.file.FileRepository
 import goodspace.bllsoneshot.repository.task.TaskRepository
 import goodspace.bllsoneshot.repository.user.UserRepository
 import goodspace.bllsoneshot.task.dto.request.*
-import goodspace.bllsoneshot.task.dto.response.TaskByDateResponse
-import goodspace.bllsoneshot.task.dto.response.TaskDetailResponse
+import goodspace.bllsoneshot.task.dto.response.task.TaskByDateResponse
+import goodspace.bllsoneshot.task.dto.response.task.TaskDetailResponse
 import goodspace.bllsoneshot.task.dto.response.submit.TaskSubmitResponse
-import goodspace.bllsoneshot.task.dto.response.TasksResponse
-import goodspace.bllsoneshot.task.dto.response.TaskResponse
+import goodspace.bllsoneshot.task.dto.response.task.TasksResponse
+import goodspace.bllsoneshot.task.dto.response.task.TaskResponse
 import goodspace.bllsoneshot.task.dto.response.feedback.TaskFeedbackResponse
 import goodspace.bllsoneshot.task.mapper.TaskDetailMapper
 import goodspace.bllsoneshot.task.mapper.TaskFeedbackMapper

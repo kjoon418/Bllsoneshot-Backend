@@ -1,4 +1,4 @@
-package goodspace.bllsoneshot.task.dto.response
+package goodspace.bllsoneshot.task.dto.response.task
 
 import goodspace.bllsoneshot.entity.assignment.Subject
 import goodspace.bllsoneshot.entity.user.UserRole

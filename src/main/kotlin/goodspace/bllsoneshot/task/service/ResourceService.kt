@@ -16,8 +16,8 @@ import goodspace.bllsoneshot.repository.task.TaskRepository
 import goodspace.bllsoneshot.repository.user.UserRepository
 import goodspace.bllsoneshot.task.dto.request.ResourceCreateRequest
 import goodspace.bllsoneshot.task.dto.request.ResourceUpdateRequest
-import goodspace.bllsoneshot.task.dto.response.ResourceResponse
-import goodspace.bllsoneshot.task.dto.response.ResourcesResponse
+import goodspace.bllsoneshot.task.dto.response.submit.ResourceResponse
+import goodspace.bllsoneshot.task.dto.response.resource.ResourceSummaryResponse
 import goodspace.bllsoneshot.task.mapper.ResourceMapper
 import java.time.LocalDate
 import org.springframework.stereotype.Service
@@ -32,7 +32,7 @@ class ResourceService(
 ) {
 
     @Transactional(readOnly = true)
-    fun getResources(mentorId: Long, menteeId: Long): ResourcesResponse {
+    fun getResources(mentorId: Long, menteeId: Long): List<ResourceSummaryResponse> {
         val mentee = userRepository.findById(menteeId)
             .orElseThrow { IllegalArgumentException(USER_NOT_FOUND.message) }
 
@@ -40,7 +40,16 @@ class ResourceService(
 
         val resources = taskRepository.findResourcesByMenteeId(menteeId)
 
-        return ResourcesResponse(resourceMapper.map(resources))
+        return resourceMapper.mapToSummaries(resources)
+    }
+
+    @Transactional(readOnly = true)
+    fun getResourceDetail(mentorId: Long, resourceId: Long): ResourceResponse {
+        val resource = findResourceOrThrow(resourceId)
+
+        validateMentorAccess(mentorId, resource.mentee)
+
+        return resourceMapper.map(resource)
     }
 
     @Transactional

@@ -1,4 +1,4 @@
-package goodspace.bllsoneshot.task.dto.response
+package goodspace.bllsoneshot.task.dto.response.task
 
 data class TasksResponse(
     val completedTaskAmount: Int,
