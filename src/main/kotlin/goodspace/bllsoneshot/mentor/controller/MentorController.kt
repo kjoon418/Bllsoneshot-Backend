@@ -15,12 +15,12 @@ import org.springframework.web.bind.annotation.RestController
 
 @PreAuthorize("hasRole('MENTOR')")
 @RestController
-@RequestMapping("/mentors")
+@RequestMapping("/mentor")
 @Tag(name = "멘토 API")
 class MentorController(
     private val mentorService: MentorService
 ) {
-    @GetMapping("/mentees/{menteeId}")
+    @GetMapping("/mentee/{menteeId}")
     @Operation(
         summary = "멘티의 간단한 정보 조회",
         description = """
