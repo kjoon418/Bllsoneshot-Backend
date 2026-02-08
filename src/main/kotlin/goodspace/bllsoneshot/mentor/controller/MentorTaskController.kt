@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -76,7 +77,7 @@ class MentorTaskController(
 
     @PutMapping("/{taskId}/feedback")
     @Operation(
-        summary = "멘토 피드백 최종 저장",
+        summary = "멘토 피드백 최종 저장(피드백 추가)",
         description = """
             멘토가 피드백을 최종 저장합니다.
             멘티에게 피드백이 공개되며, 이후 수정은 이 API를 다시 호출합니다.
@@ -96,6 +97,25 @@ class MentorTaskController(
         principal: Principal
     ): ResponseEntity<Void> {
         mentorTaskService.saveFeedback(principal.userId, taskId, request)
+        return NO_CONTENT
+    }
+
+    @DeleteMapping("/{taskId}/feedback")
+    @Operation(
+        summary = "멘토 피드백 삭제",
+        description = """
+            멘토가 해당 할 일의 피드백을 전부 삭제합니다.
+            총평과 상세 피드백(임시저장 + 확정저장)이 모두 삭제됩니다.
+            멘티의 질문은 삭제되지 않습니다.
+            
+            피드백이 없는 할 일에 대해 호출해도 에러 없이 정상 응답합니다.
+        """
+    )
+    fun deleteFeedback(
+        @PathVariable taskId: Long,
+        principal: Principal
+    ): ResponseEntity<Void> {
+        mentorTaskService.deleteFeedback(principal.userId, taskId)
         return NO_CONTENT
     }
 

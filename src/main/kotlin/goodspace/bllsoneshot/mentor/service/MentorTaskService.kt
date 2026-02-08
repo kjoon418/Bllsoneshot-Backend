@@ -43,6 +43,17 @@ class MentorTaskService(
     }
 
     @Transactional
+    fun deleteFeedback(mentorId: Long, taskId: Long) {
+        val task = findTaskWithDetails(taskId)
+        validateMentorAccess(mentorId, task)
+
+        task.clearFeedbackComments()
+        task.generalComment = null
+
+        taskRepository.save(task)
+    }
+
+    @Transactional
     fun updateTask(mentorId: Long, taskId: Long, request: MentorTaskUpdateRequest) {
         val task = findTaskWithDetails(taskId)
         validateMentorAccess(mentorId, task)
