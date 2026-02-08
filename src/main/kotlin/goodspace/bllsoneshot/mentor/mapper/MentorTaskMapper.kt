@@ -1,0 +1,45 @@
+package goodspace.bllsoneshot.mentor.mapper
+
+import goodspace.bllsoneshot.entity.assignment.ProofShot
+import goodspace.bllsoneshot.entity.assignment.Task
+import goodspace.bllsoneshot.mentor.dto.response.MentorTaskDetailResponse
+import goodspace.bllsoneshot.task.dto.response.feedback.ProofShotResponse
+import goodspace.bllsoneshot.task.mapper.FeedbackMapper
+import goodspace.bllsoneshot.task.mapper.QuestionMapper
+import org.springframework.stereotype.Component
+
+@Component
+class MentorTaskMapper(
+    private val questionMapper: QuestionMapper,
+    private val feedbackMapper: FeedbackMapper
+) {
+
+    fun mapToDetail(task: Task): MentorTaskDetailResponse {
+        return MentorTaskDetailResponse(
+            taskId = task.id!!,
+            taskName = task.name,
+            subject = task.subject,
+            menteeName = task.mentee.name,
+            generalComment = task.generalComment?.content,
+            hasProofShot = task.hasProofShot(),
+            hasFeedback = task.hasFeedback(),
+            proofShots = task.proofShots.map { mapProofShot(it) }
+        )
+    }
+
+    /**
+     * 멘토 화면용 ProofShot 매핑.
+     * 멘티 화면과 달리 임시저장(TEMPORARY) 피드백도 포함합니다.
+     */
+    private fun mapProofShot(proofShot: ProofShot): ProofShotResponse {
+        val questions = proofShot.questComments.sortedBy { it.commentAnnotation.number }
+        val feedbacks = proofShot.allFeedbackComments.sortedBy { it.commentAnnotation.number }
+
+        return ProofShotResponse(
+            proofShotId = proofShot.id!!,
+            imageFileId = proofShot.file.id!!,
+            questions = questions.map { questionMapper.map(it) },
+            feedbacks = feedbacks.map { feedbackMapper.map(it) }
+        )
+    }
+}
