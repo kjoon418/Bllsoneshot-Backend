@@ -147,7 +147,6 @@ class MentorTaskService(
 
             for ((index, feedback) in psRequest.feedbacks.withIndex()) {
                 val annotation = CommentAnnotation(
-                    proofShot = proofShot,
                     number = index + 1,
                     percentX = feedback.percentX,
                     percentY = feedback.percentY
@@ -155,13 +154,12 @@ class MentorTaskService(
                 val comment = Comment(
                     task = task,
                     proofShot = proofShot,
-                    commentAnnotation = annotation,
+                    annotation = annotation,
                     content = feedback.content,
                     starred = feedback.starred,
                     type = CommentType.FEEDBACK,
                     registerStatus = status
                 )
-                annotation.comment = comment
 
                 proofShot.comments.add(comment)
                 task.comments.add(comment)

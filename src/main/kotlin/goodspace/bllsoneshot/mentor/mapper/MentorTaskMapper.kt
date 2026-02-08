@@ -32,8 +32,8 @@ class MentorTaskMapper(
      * 멘티 화면과 달리 임시저장(TEMPORARY) 피드백도 포함합니다.
      */
     private fun mapProofShot(proofShot: ProofShot): ProofShotResponse {
-        val questions = proofShot.questComments.sortedBy { it.commentAnnotation.number }
-        val feedbacks = proofShot.allFeedbackComments.sortedBy { it.commentAnnotation.number }
+        val questions = proofShot.questComments.sortedBy { it.annotation.number }
+        val feedbacks = proofShot.allFeedbackComments.sortedBy { it.annotation.number }
 
         return ProofShotResponse(
             proofShotId = proofShot.id!!,
