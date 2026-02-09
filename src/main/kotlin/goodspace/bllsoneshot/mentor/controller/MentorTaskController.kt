@@ -31,9 +31,16 @@ class MentorTaskController(
             인증 사진, 멘티의 질문, 멘토의 최종 저장된 피드백을 반환합니다.
             임시저장된 피드백을 조회하려면 GET /{taskId}/feedback/temporary API를 사용하세요.
             
-            응답 필드:
-            generalComment: 멘토의 최종 저장된 총평 (아직 작성하지 않았을 경우 null)
-            proofShots.feedbacks: 최종 저장된(CONFIRMED) 피드백만 포함 (임시저장 제외)
+            [응답]
+            taskId: 할 일 ID
+            mentorName: 멘토 이름
+            taskName: 할 일 이름
+            menteeName: 멘티 이름
+            proofShots: 인증 사진 목록
+                proofShots.questions: 멘티의 질문 목록
+                proofShots.feedbacks: 최종 저장된(CONFIRMED) 피드백만 포함 (임시저장 제외)
+            generalComment: 멘토의 총평, 멘토가 아직 작성하지 않았을 경우 null
+            subject: 과목(안써도됨)
         """
     )
     fun getTaskDetail(
