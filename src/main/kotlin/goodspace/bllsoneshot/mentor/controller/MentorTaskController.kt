@@ -33,12 +33,12 @@ class MentorTaskController(
         summary = "멘토 할 일 상세 조회",
         description = """
             멘토가 멘티의 할 일을 상세 조회합니다.
-            인증 사진, 멘티의 질문, 멘토의 피드백(임시저장 포함)을 모두 반환합니다.
+            인증 사진, 멘티의 질문, 멘토의 최종 저장된 피드백을 반환합니다.
+            임시저장된 피드백을 조회하려면 GET /{taskId}/feedback/temporary API를 사용하세요.
             
             응답 필드:
-            generalComment: 멘토의 총평 (null이면 아직 작성하지 않음)
-            hasProofShot: 학생 인증 사진 제출 여부
-            proofShots.feedbacks: 임시저장(TEMPORARY) + 확정저장(CONFIRMED) 피드백 모두 포함
+            generalComment: 멘토의 최종 저장된 총평 (아직 작성하지 않았을 경우 null)
+            proofShots.feedbacks: 최종 저장된(CONFIRMED) 피드백만 포함 (임시저장 제외)
         """
     )
     fun getTaskDetail(
@@ -46,6 +46,29 @@ class MentorTaskController(
         principal: Principal
     ): ResponseEntity<MentorTaskDetailResponse> {
         val result = mentorTaskService.getTaskForFeedback(principal.userId, taskId)
+
+        return ResponseEntity.ok(result)
+    }
+
+    @GetMapping("/{taskId}/feedback/temporary")
+    @Operation(
+        summary = "멘토 피드백 임시저장 조회",
+        description = """
+            멘토가 임시저장한 피드백을 조회합니다.
+            TEMPORARY 상태의 총평(temporaryContent) 및 피드백만 반환됩니다.
+            최종 저장된(CONFIRMED) 피드백은 포함되지 않습니다.
+            
+            응답 필드:
+            generalComment: 임시저장된 총평 (temporaryContent)
+            proofShots.feedbacks: TEMPORARY 상태의 피드백만 포함
+        """
+    )
+    fun getTemporaryFeedback(
+        @PathVariable taskId: Long,
+        principal: Principal
+    ): ResponseEntity<MentorTaskDetailResponse> {
+        val result = mentorTaskService.getTemporaryFeedback(principal.userId, taskId)
+
         return ResponseEntity.ok(result)
     }
 
@@ -55,15 +78,19 @@ class MentorTaskController(
         description = """
             멘토가 작성 중인 피드백을 임시저장합니다.
             프론트에서 자동 저장(debounce) 시 이 API를 호출해 주시면 됩니다.
+            임시저장은 기존 최종 저장된(CONFIRMED) 피드백에 영향을 주지 않습니다.
             
             임시저장은 검증이 느슨합니다:
             - 총평이 비어 있어도 됩니다.
             - 상세 피드백 내용이 비어 있어도 됩니다.
+            - 질문 답변이 비어 있어도 됩니다.
             - 총평 최대 200자 제한만 적용됩니다.
             
             요청 필드:
             generalComment: 멘토의 총평 (최대 200자, null 가능)
             proofShotFeedbacks: 인증 사진별 피드백 목록
+            questionAnswers: 질문별 답변 목록 (questionId, content)
+                - 임시저장 시 답변은 temporaryContent에 저장되며, 기존 최종 저장된 답변(content)은 유지됩니다.
         """
     )
     fun saveTemporary(
@@ -72,6 +99,7 @@ class MentorTaskController(
         principal: Principal
     ): ResponseEntity<Void> {
         mentorTaskService.saveTemporary(principal.userId, taskId, request)
+
         return NO_CONTENT
     }
 
@@ -82,13 +110,21 @@ class MentorTaskController(
             멘토가 피드백을 최종 저장합니다.
             멘티에게 피드백이 공개되며, 이후 수정은 이 API를 다시 호출합니다.
             
+            최종 저장 시:
+            - 기존 최종 저장된(CONFIRMED) 피드백과 임시저장된(TEMPORARY) 피드백이 모두 제거됩니다.
+            - 새로운 피드백이 CONFIRMED 상태로 저장됩니다.
+            - 모든 임시저장된 답변(temporaryContent)이 제거되고, 새로운 답변이 content에 저장됩니다.
+            
             최종 저장은 검증이 엄격합니다:
             - 총평은 필수이며 최대 200자입니다.
             - 상세 피드백 내용이 비어 있으면 안 됩니다.
+            - 질문 답변 내용이 비어 있으면 안 됩니다.
             
             요청 필드:
             generalComment: 멘토의 총평 (필수, 최대 200자)
             proofShotFeedbacks: 인증 사진별 피드백 목록
+            questionAnswers: 질문별 답변 목록 (questionId, content)
+                - 최종 저장 시 답변은 content에 저장되며, temporaryContent는 null로 초기화됩니다.
         """
     )
     fun saveFeedback(
@@ -97,6 +133,7 @@ class MentorTaskController(
         principal: Principal
     ): ResponseEntity<Void> {
         mentorTaskService.saveFeedback(principal.userId, taskId, request)
+
         return NO_CONTENT
     }
 
@@ -116,6 +153,7 @@ class MentorTaskController(
         principal: Principal
     ): ResponseEntity<Void> {
         mentorTaskService.deleteFeedback(principal.userId, taskId)
+
         return NO_CONTENT
     }
 
@@ -136,6 +174,7 @@ class MentorTaskController(
         principal: Principal
     ): ResponseEntity<Void> {
         mentorTaskService.updateTask(principal.userId, taskId, request)
+
         return NO_CONTENT
     }
 }

@@ -10,8 +10,6 @@ data class MentorTaskDetailResponse(
     val menteeName: String,
 
     val generalComment: String?,
-    val hasProofShot: Boolean,
-    val hasFeedback: Boolean,
 
     val proofShots: List<ProofShotResponse>
 )

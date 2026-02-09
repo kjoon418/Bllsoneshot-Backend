@@ -44,14 +44,15 @@ class Task(
     @OneToMany(mappedBy = "task", fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
     val proofShots: MutableList<ProofShot> = mutableListOf()
 
-    @OneToMany(mappedBy = "task", fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
-    val comments: MutableList<Comment> = mutableListOf()
-
-    @OneToOne(fetch = FetchType.LAZY, cascade = [CascadeType.PERSIST, CascadeType.REMOVE], orphanRemoval = true)
+    @OneToOne(fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
     var generalComment: GeneralComment? = null
 
     @Column(nullable = false)
     var completed: Boolean = false
+
+    @get:Transient
+    val questions: List<Comment>
+        get() =  proofShots.flatMap { it.questComments }
 
     var actualMinutes: Int? = null
         set(value) {
@@ -69,19 +70,13 @@ class Task(
         proofShots.isNotEmpty()
 
     fun hasFeedback(): Boolean =
-        comments.any { it.isFeedback && it.isConfirmed }
+        proofShots.any { it.hasFeedback() }
 
-    fun hasReadAllFeedbacks(): Boolean {
-        if (!hasFeedback()) {
-            return true
-        }
-
-        return comments.filter { it.isFeedback && it.isConfirmed }
-            .all { it.isRead }
-    }
+    fun hasReadAllFeedbacks() =
+        proofShots.all { it.hasReadAllFeedbacks() }
 
     fun markFeedbackAsRead() {
-        comments.forEach { it.markAsRead() }
+        proofShots.forEach { it.markFeedbackAsRead() }
     }
 
     // TODO: 로직 이해하기
@@ -92,7 +87,14 @@ class Task(
         proofShots.forEach { ps ->
             ps.comments.removeIf { it.isFeedback }
         }
-        comments.removeIf { it.isFeedback }
+    }
+
+    fun clearTemporaryFeedbackComments() {
+        proofShots.forEach { it.clearTemporaryFeedbackComments() }
+    }
+
+    fun clearTemporaryAnswers() {
+        proofShots.forEach { it.clearTemporaryAnswers() }
     }
 
     companion object {

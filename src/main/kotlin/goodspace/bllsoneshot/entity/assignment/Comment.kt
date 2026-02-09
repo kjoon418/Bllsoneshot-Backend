@@ -1,24 +1,18 @@
 package goodspace.bllsoneshot.entity.assignment
 
 import goodspace.bllsoneshot.entity.BaseEntity
+import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
-import jakarta.persistence.CascadeType
 import jakarta.persistence.FetchType
-import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToOne
-import jakarta.persistence.Table
 import jakarta.persistence.Transient
 
 @Entity
 class Comment(
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false)
-    val task: Task,
-
     @ManyToOne(fetch = FetchType.LAZY)
     val proofShot: ProofShot,
     @OneToOne(fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
@@ -60,6 +54,10 @@ class Comment(
     @get:Transient
     val isConfirmed: Boolean
         get() = registerStatus == RegisterStatus.CONFIRMED
+
+    @get:Transient
+    val isTemporary: Boolean
+        get() = registerStatus == RegisterStatus.TEMPORARY
 
     @get:Transient
     val isRead: Boolean

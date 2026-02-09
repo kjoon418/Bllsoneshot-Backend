@@ -142,7 +142,7 @@ class TaskService(
         validateTaskOwnership(task, userId)
         validateTaskSubmittable(task)
 
-        removeExistingProofShotsAndComments(task)
+        removeExistingProofShots(task)
         createProofShotsAndQuestions(task, request.proofShots)
 
         taskRepository.save(task)
@@ -254,8 +254,7 @@ class TaskService(
     }
 
 
-    private fun removeExistingProofShotsAndComments(task: Task) {
-        task.comments.clear()
+    private fun removeExistingProofShots(task: Task) {
         task.proofShots.clear()
     }
 
@@ -272,7 +271,6 @@ class TaskService(
                     percentY = question.percentY
                 )
                 val comment = Comment(
-                    task = task,
                     proofShot = proofShot,
                     annotation = annotation,
                     content = question.content,
@@ -281,7 +279,6 @@ class TaskService(
                 )
 
                 proofShot.comments.add(comment)
-                task.comments.add(comment)
             }
 
             task.proofShots.add(proofShot)

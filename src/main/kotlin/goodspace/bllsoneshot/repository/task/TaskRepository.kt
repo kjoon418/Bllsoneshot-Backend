@@ -82,7 +82,8 @@ interface TaskRepository : JpaRepository<Task, Long> {
         AND NOT EXISTS (
             SELECT c 
             FROM Comment c
-            WHERE c.task = t
+            JOIN c.proofShot ps
+            WHERE ps.task = t
               AND c.type = :feedbackType
               AND c.registerStatus = :confirmedStatus
         )

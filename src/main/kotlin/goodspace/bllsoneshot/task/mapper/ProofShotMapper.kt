@@ -17,7 +17,7 @@ class ProofShotMapper(
         return ProofShotResponse(
             proofShotId = proofShot.id!!,
             imageFileId = proofShot.file.id!!,
-            questions = questions.map { questionMapper.map(it) },
+            questions = questions.map { questionMapper.mapConfirmed(it) },
             feedbacks = feedbacks.map { feedbackMapper.map(it) }
         )
     }

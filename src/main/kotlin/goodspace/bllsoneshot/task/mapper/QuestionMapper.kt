@@ -9,12 +9,22 @@ class QuestionMapper(
     private val commentAnnotationMapper: CommentAnnotationMapper
 ) {
 
-    fun map(comment: Comment): QuestionResponse {
+    fun mapConfirmed(comment: Comment): QuestionResponse {
         return QuestionResponse(
             questionId = comment.id!!,
             questionNumber = comment.annotation.number,
             content = comment.content,
             answer = comment.answer?.content,
+            annotation = commentAnnotationMapper.map(comment.annotation)
+        )
+    }
+
+    fun mapTemporary(comment: Comment): QuestionResponse {
+        return QuestionResponse(
+            questionId = comment.id!!,
+            questionNumber = comment.annotation.number,
+            content = comment.content,
+            answer = comment.answer?.temporaryContent,
             annotation = commentAnnotationMapper.map(comment.annotation)
         )
     }

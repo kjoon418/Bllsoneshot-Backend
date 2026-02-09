@@ -2,7 +2,8 @@ package goodspace.bllsoneshot.mentor.dto.request
 
 data class MentorFeedbackRequest(
     val generalComment: String?,
-    val proofShotFeedbacks: List<ProofShotFeedbackRequest> = emptyList()
+    val proofShotFeedbacks: List<ProofShotFeedbackRequest> = emptyList(),
+    val questionAnswers: List<QuestionAnswerRequest> = emptyList()
 )
 
 data class ProofShotFeedbackRequest(
@@ -15,4 +16,9 @@ data class DetailFeedbackRequest(
     val starred: Boolean = false,
     val percentX: Double,
     val percentY: Double
+)
+
+data class QuestionAnswerRequest(
+    val questionId: Long,
+    val content: String
 )

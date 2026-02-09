@@ -31,6 +31,33 @@ class ProofShot(
         get() = comments.filter { it.isFeedback && it.isConfirmed }
 
     @get:Transient
-    val allFeedbackComments: List<Comment>
-        get() = comments.filter { it.isFeedback }
+    val temporaryFeedbackComments: List<Comment>
+        get() = comments.filter { it.isFeedback && it.isTemporary }
+
+    fun hasFeedback(): Boolean =
+        comments.any { it.isFeedback && it.isConfirmed }
+
+    fun hasReadAllFeedbacks(): Boolean {
+        if (!hasFeedback()) {
+            return true
+        }
+
+        return comments.filter { it.isFeedback && it.isConfirmed }
+            .all { it.isRead }
+    }
+
+    fun markFeedbackAsRead() {
+        comments.forEach { it.markAsRead() }
+    }
+
+    fun clearTemporaryFeedbackComments() {
+        comments.removeIf { it.isFeedback && it.isTemporary }
+    }
+
+    fun clearTemporaryAnswers() {
+        comments.filter { it.isQuestion && it.answer != null }
+            .forEach { question ->
+                question.answer?.temporaryContent = null
+            }
+    }
 }

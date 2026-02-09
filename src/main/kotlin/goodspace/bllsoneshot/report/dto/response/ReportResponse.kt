@@ -10,7 +10,7 @@ data class ReportResponse(
     val startDate: LocalDate,
     val endDate: LocalDate,
 
-    val generalComment: String,
+    val generalComment: String?,
     val goodPoints: List<String>,
     val badPoints: List<String>
 )

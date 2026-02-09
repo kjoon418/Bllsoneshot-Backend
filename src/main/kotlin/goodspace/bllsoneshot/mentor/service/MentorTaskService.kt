@@ -4,6 +4,7 @@ import goodspace.bllsoneshot.entity.assignment.*
 import goodspace.bllsoneshot.global.exception.ExceptionMessage.*
 import goodspace.bllsoneshot.mentor.dto.request.MentorFeedbackRequest
 import goodspace.bllsoneshot.mentor.dto.request.MentorTaskUpdateRequest
+import goodspace.bllsoneshot.mentor.dto.request.QuestionAnswerRequest
 import goodspace.bllsoneshot.mentor.dto.response.MentorTaskDetailResponse
 import goodspace.bllsoneshot.mentor.mapper.MentorTaskMapper
 import goodspace.bllsoneshot.repository.task.TaskRepository
@@ -24,13 +25,27 @@ class MentorTaskService(
         return mentorTaskMapper.mapToDetail(task)
     }
 
+    @Transactional(readOnly = true)
+    fun getTemporaryFeedback(mentorId: Long, taskId: Long): MentorTaskDetailResponse {
+        val task = findTaskWithDetails(taskId)
+        validateMentorAccess(mentorId, task)
+
+        return mentorTaskMapper.mapToTemporaryDetail(task)
+    }
+
     @Transactional
     fun saveTemporary(mentorId: Long, taskId: Long, request: MentorFeedbackRequest) {
         val task = findTaskWithDetails(taskId)
         validateMentorAccess(mentorId, task)
         validateGeneralCommentLength(request.generalComment)
 
-        replaceFeedback(task, request, RegisterStatus.TEMPORARY)
+        // 임시 저장 데이터만 제거 후 덮어쓰기
+        task.clearTemporaryFeedbackComments()
+        updateTemporaryGeneralComment(task, request.generalComment)
+        createFeedbackComments(task, request, RegisterStatus.TEMPORARY)
+        updateTemporaryAnswers(task, request.questionAnswers)
+
+        taskRepository.save(task)
     }
 
     @Transactional
@@ -39,7 +54,16 @@ class MentorTaskService(
         validateMentorAccess(mentorId, task)
         validateFinalFeedbackRequest(request)
 
-        replaceFeedback(task, request, RegisterStatus.CONFIRMED)
+        // 모든 데이터 제거 후 덮어쓰기
+        task.clearFeedbackComments()
+        updateGeneralComment(task, request.generalComment)
+        createFeedbackComments(task, request, RegisterStatus.CONFIRMED)
+
+        // 최종 저장 시 모든 임시저장 답변 제거 후 새 답변 저장
+        task.clearTemporaryAnswers()
+        updateAnswers(task, request.questionAnswers)
+
+        taskRepository.save(task)
     }
 
     @Transactional
@@ -126,18 +150,27 @@ class MentorTaskService(
         val existing = task.generalComment
         if (existing != null) {
             existing.content = generalComment
+            existing.temporaryContent = null
         } else {
             task.generalComment = GeneralComment(content = generalComment)
         }
     }
 
-    // ── 상세 피드백 생성 ────────────────────────────────
+    private fun updateTemporaryGeneralComment(task: Task, temporaryContent: String?) {
+        // 빈 값이면 null로 저장
+        val contentToSave = temporaryContent?.ifBlank { null }
+        
+        val existing = task.generalComment
+        if (existing != null) {
+            existing.temporaryContent = contentToSave
+        } else {
+            // GeneralComment가 없고 빈 값이면 생성하지 않음
+            if (contentToSave != null) {
+                task.generalComment = GeneralComment(temporaryContent = contentToSave)
+            }
+        }
+    }
 
-    // TODO: 로직 이해하기
-    //  Comment와 CommentAnnotation은 양방향 관계이므로 annotation.comment = comment 설정이 필요하다.
-    //  Comment는 task.comments와 proofShot.comments 양쪽에 추가해야
-    //  Task/ProofShot 어느 쪽에서 조회해도 피드백이 포함된다.
-    //  번호(number)는 인증 사진별로 1부터 순차 배정된다.
     private fun createFeedbackComments(task: Task, request: MentorFeedbackRequest, status: RegisterStatus) {
         val proofShotMap = task.proofShots.associateBy { it.id!! }
 
@@ -152,7 +185,6 @@ class MentorTaskService(
                     percentY = feedback.percentY
                 )
                 val comment = Comment(
-                    task = task,
                     proofShot = proofShot,
                     annotation = annotation,
                     content = feedback.content,
@@ -162,7 +194,55 @@ class MentorTaskService(
                 )
 
                 proofShot.comments.add(comment)
-                task.comments.add(comment)
+            }
+        }
+    }
+
+    private fun updateTemporaryAnswers(task: Task, questionAnswers: List<QuestionAnswerRequest>) {
+        val questionMap = task.questions.associateBy { it.id!! }
+
+        for (questionAnswer in questionAnswers) {
+            val question = questionMap[questionAnswer.questionId]
+                ?: throw IllegalArgumentException("질문을 찾을 수 없습니다: ${questionAnswer.questionId}")
+
+            // 빈 값이면 null로 저장
+            val contentToSave = questionAnswer.content.ifBlank { null }
+
+            val existingAnswer = question.answer
+            if (existingAnswer != null) {
+                existingAnswer.temporaryContent = contentToSave
+            } else {
+                // Answer가 없고 빈 값이면 생성하지 않음
+                if (contentToSave != null) {
+                    question.answer = Answer(
+                        content = null,
+                        temporaryContent = contentToSave
+                    )
+                }
+            }
+        }
+    }
+
+    private fun updateAnswers(task: Task, questionAnswers: List<QuestionAnswerRequest>) {
+        val questionMap = task.questions.associateBy { it.id!! }
+
+        for (questionAnswer in questionAnswers) {
+            val question = questionMap[questionAnswer.questionId]
+                ?: throw IllegalArgumentException("질문을 찾을 수 없습니다: ${questionAnswer.questionId}")
+
+            require(questionAnswer.content.isNotBlank()) {
+                "답변 내용이 비어있습니다: questionId=${questionAnswer.questionId}"
+            }
+
+            val existingAnswer = question.answer
+            if (existingAnswer != null) {
+                existingAnswer.content = questionAnswer.content
+                existingAnswer.temporaryContent = null
+            } else {
+                question.answer = Answer(
+                    content = questionAnswer.content,
+                    temporaryContent = null
+                )
             }
         }
     }
