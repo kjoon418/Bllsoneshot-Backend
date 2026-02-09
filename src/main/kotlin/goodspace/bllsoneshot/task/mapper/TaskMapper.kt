@@ -1,6 +1,7 @@
 package goodspace.bllsoneshot.task.mapper
 
 import goodspace.bllsoneshot.entity.assignment.Task
+import goodspace.bllsoneshot.task.dto.response.task.TaskAmountResponse
 import goodspace.bllsoneshot.task.dto.response.task.TaskByDateResponse
 import goodspace.bllsoneshot.task.dto.response.task.TaskResponse
 import org.springframework.stereotype.Component
@@ -32,6 +33,15 @@ class TaskMapper {
             .toSortedMap()
             .map { (date, taskList) ->
                 TaskByDateResponse(date = date, tasks = map(taskList))
+            }
+    }
+
+    fun mapToTaskAmounts(tasks: List<Task>): List<TaskAmountResponse> {
+        return tasks
+            .groupBy { it.date!! }
+            .toSortedMap()
+            .map { (date, taskList) ->
+                TaskAmountResponse(date = date, taskAmount = taskList.size)
             }
     }
 }

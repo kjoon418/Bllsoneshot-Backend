@@ -8,6 +8,7 @@ import goodspace.bllsoneshot.repository.file.FileRepository
 import goodspace.bllsoneshot.repository.task.TaskRepository
 import goodspace.bllsoneshot.repository.user.UserRepository
 import goodspace.bllsoneshot.task.dto.request.*
+import goodspace.bllsoneshot.task.dto.response.task.TaskAmountResponse
 import goodspace.bllsoneshot.task.dto.response.task.TaskByDateResponse
 import goodspace.bllsoneshot.task.dto.response.task.TaskDetailResponse
 import goodspace.bllsoneshot.task.dto.response.submit.TaskSubmitResponse
@@ -75,6 +76,17 @@ class TaskService(
         )
 
         return taskMapper.mapByDate(tasks)
+    }
+
+    @Transactional(readOnly = true)
+    fun findTaskAmounts(
+        userId: Long,
+        startDate: LocalDate,
+        endDate: LocalDate
+    ): List<TaskAmountResponse> {
+        val tasks = taskRepository.findTaskAmountsByDateRange(userId, startDate, endDate)
+
+        return taskMapper.mapToTaskAmounts(tasks)
     }
 
     @Transactional

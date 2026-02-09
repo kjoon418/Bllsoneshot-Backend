@@ -194,4 +194,20 @@ interface TaskRepository : JpaRepository<Task, Long> {
         """
     )
     fun findResourceByIdWithMentee(resourceId: Long): Task?
+
+    @Query(
+        """
+        SELECT t FROM Task t
+        WHERE t.mentee.id = :userId
+        AND t.date BETWEEN :startDate AND :endDate
+        AND t.isResource = false
+        AND t.completed = false
+        ORDER BY t.date ASC
+        """
+    )
+    fun findTaskAmountsByDateRange(
+        userId: Long,
+        startDate: LocalDate,
+        endDate: LocalDate
+    ): List<Task>
 }

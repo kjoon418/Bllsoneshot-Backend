@@ -14,6 +14,7 @@ import goodspace.bllsoneshot.task.dto.response.task.TaskResponse
 import goodspace.bllsoneshot.task.dto.response.task.TasksResponse
 import goodspace.bllsoneshot.task.dto.response.feedback.TaskFeedbackResponse
 import goodspace.bllsoneshot.task.dto.response.submit.TaskSubmitResponse
+import goodspace.bllsoneshot.task.dto.response.task.TaskAmountResponse
 import goodspace.bllsoneshot.task.service.TaskService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -103,6 +104,38 @@ class TaskController(
         val userId = principal.userId
 
         val response = taskService.findTasksByDuration(userId, menteeId, subject, startDate, endDate)
+
+        return ResponseEntity.ok(response)
+    }
+
+    @GetMapping("/duration/amount")
+    @Operation(
+        summary = "할 일 개수 조회(월간 캘린더)",
+        description = """
+            해당 기간 내의 완료되지 않은 날짜별 할 일 개수를 조회합니다.
+            자료(RESOURCE)의 개수는 포함하지 않습니다.
+            
+            본인에 대해서만 호출할 수 있습니다.
+            
+            DTO는 날짜 순서대로 정렬됩니다.
+
+            [요청]
+            startDate: 조회 시작 날짜(yyyy-MM-dd)
+            endDate: 조회 종료 날짜(yyyy-MM-dd)
+
+            [응답]
+            date: 할 일의 날짜(yyyy-MM-dd)
+            taskAmount: 할 일의 개수
+        """
+    )
+    fun getTaskAmounts(
+        principal: Principal,
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) startDate: LocalDate,
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) endDate: LocalDate
+    ): ResponseEntity<List<TaskAmountResponse>> {
+        val userId = principal.userId
+
+        val response = taskService.findTaskAmounts(userId, startDate, endDate)
 
         return ResponseEntity.ok(response)
     }
