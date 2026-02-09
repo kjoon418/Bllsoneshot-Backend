@@ -1,11 +1,14 @@
 package goodspace.bllsoneshot.mentor.service
 
 import goodspace.bllsoneshot.entity.assignment.*
+import goodspace.bllsoneshot.entity.user.UserRole
 import goodspace.bllsoneshot.global.exception.ExceptionMessage.*
 import goodspace.bllsoneshot.mentor.dto.request.MentorFeedbackRequest
 import goodspace.bllsoneshot.mentor.dto.request.MentorTaskUpdateRequest
 import goodspace.bllsoneshot.mentor.dto.response.MentorTaskDetailResponse
+import goodspace.bllsoneshot.mentor.dto.response.MentorTaskEditResponse
 import goodspace.bllsoneshot.mentor.mapper.MentorTaskMapper
+import goodspace.bllsoneshot.repository.file.FileRepository
 import goodspace.bllsoneshot.repository.task.TaskRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -13,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class MentorTaskService(
     private val taskRepository: TaskRepository,
+    private val fileRepository: FileRepository,
     private val mentorTaskMapper: MentorTaskMapper
 ) {
 
@@ -54,12 +58,26 @@ class MentorTaskService(
     }
 
     @Transactional
-    fun updateTask(mentorId: Long, taskId: Long, request: MentorTaskUpdateRequest) {
+    fun updateTask(mentorId: Long, taskId: Long, request: MentorTaskUpdateRequest): MentorTaskEditResponse {
         val task = findTaskWithDetails(taskId)
         validateMentorAccess(mentorId, task)
 
+        task.subject = request.subject
         task.name = request.taskName
         task.goalMinutes = request.goalMinutes
+        replaceWorksheets(task, request)
+        replaceColumnLinks(task, request)
+
+        return mentorTaskMapper.mapToEdit(task)
+    }
+
+    @Transactional
+    fun deleteTask(mentorId: Long, taskId: Long) {
+        val task = findTaskWithDetails(taskId)
+        validateMentorAccess(mentorId, task)
+        validateCreatedByMentor(task)
+
+        taskRepository.delete(task)
     }
 
     // ── 조회 ────────────────────────────────────────────
@@ -73,6 +91,33 @@ class MentorTaskService(
 
     private fun validateMentorAccess(mentorId: Long, task: Task) {
         check(task.mentee.mentor?.id == mentorId) { MENTEE_ACCESS_DENIED.message }
+    }
+
+    private fun validateCreatedByMentor(task: Task) {
+        check(task.createdBy == UserRole.ROLE_MENTOR) { TASK_NOT_CREATED_BY_MENTOR.message }
+    }
+
+    // ── 학습 자료 · 칼럼 링크 교체 ──────────────────────
+
+    private fun replaceWorksheets(task: Task, request: MentorTaskUpdateRequest) {
+        task.worksheets.clear()
+        task.worksheets.addAll(
+            request.worksheets
+                .mapNotNull { it.fileId }
+                .mapNotNull { fileId ->
+                    fileRepository.findById(fileId).orElse(null)
+                        ?.let { file -> Worksheet(task, file) }
+                }
+        )
+    }
+
+    private fun replaceColumnLinks(task: Task, request: MentorTaskUpdateRequest) {
+        task.columnLinks.clear()
+        task.columnLinks.addAll(
+            request.columnLinks
+                .mapNotNull { it.link?.takeIf { link -> link.isNotBlank() } }
+                .map { link -> ColumnLink(task, link) }
+        )
     }
 
     private fun validateGeneralCommentLength(generalComment: String?) {

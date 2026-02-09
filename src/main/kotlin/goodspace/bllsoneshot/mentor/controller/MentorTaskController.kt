@@ -5,20 +5,15 @@ import goodspace.bllsoneshot.global.security.userId
 import goodspace.bllsoneshot.mentor.dto.request.MentorFeedbackRequest
 import goodspace.bllsoneshot.mentor.dto.request.MentorTaskUpdateRequest
 import goodspace.bllsoneshot.mentor.dto.response.MentorTaskDetailResponse
+import goodspace.bllsoneshot.mentor.dto.response.MentorTaskEditResponse
 import goodspace.bllsoneshot.mentor.service.MentorTaskService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
-import java.security.Principal
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.DeleteMapping
-import org.springframework.web.bind.annotation.PutMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
+import java.security.Principal
 
 @Tag(name = "Mentor Task", description = "멘토 - 할 일 관리")
 @RestController
@@ -123,19 +118,55 @@ class MentorTaskController(
     @Operation(
         summary = "멘토 할 일 수정",
         description = """
-            멘토가 할 일의 이름과 목표 시간을 수정합니다.
+            멘토가 담당 멘티의 할 일을 수정합니다.
+            멘토가 등록한 할 일뿐 아니라 멘티가 등록한 할 일도 수정할 수 있습니다.
             
-            요청 필드:
-            taskName: 할 일 이름 (필수)
+            [요청]
+            subject: 과목 (KOREAN, ENGLISH, MATH)
+            taskName: 할 일 이름 (필수, 최대 50자)
             goalMinutes: 목표 시간 (분, 0 이상)
+            worksheets: 학습 자료 목록 (기존 자료를 전체 교체합니다)
+            columnLinks: 칼럼 링크 목록 (기존 링크를 전체 교체합니다)
+            
+            [응답]
+            subject: 과목
+            date: 날짜
+            taskName: 할 일 이름
+            goalMinutes: 목표 시간 (분)
+            worksheets: 학습 자료 PDF 파일
+            columnLinks: 학습 자료 칼럼 링크
+            completed: 멘티가 완료했는지 여부
         """
     )
     fun updateTask(
         @PathVariable taskId: Long,
         @Valid @RequestBody request: MentorTaskUpdateRequest,
         principal: Principal
+    ): ResponseEntity<MentorTaskEditResponse> {
+        val response = mentorTaskService.updateTask(principal.userId, taskId, request)
+        return ResponseEntity.ok(response)
+    }
+
+    @DeleteMapping("/{taskId}")
+    @Operation(
+        summary = "멘토 할 일 삭제",
+        description = """
+            멘토가 본인이 등록한 할 일을 삭제합니다.
+            멘토가 등록한 할 일(createdBy = ROLE_MENTOR)만 삭제할 수 있습니다.
+            멘티가 등록한 할 일은 삭제할 수 없습니다.
+            
+            [요청]
+            taskId
+            
+            [응답]
+            204 NO CONTENT
+        """
+    )
+    fun deleteTask(
+        @PathVariable taskId: Long,
+        principal: Principal
     ): ResponseEntity<Void> {
-        mentorTaskService.updateTask(principal.userId, taskId, request)
+        mentorTaskService.deleteTask(principal.userId, taskId)
         return NO_CONTENT
     }
 }

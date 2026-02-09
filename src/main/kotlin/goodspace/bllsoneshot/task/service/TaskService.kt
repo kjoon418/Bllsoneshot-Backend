@@ -305,9 +305,9 @@ class TaskService(
 
     private fun validateTaskOwnership(
         task: Task,
-        menteeId: Long
+        userId: Long
     ) {
-        check(task.mentee.id == menteeId) { TASK_ACCESS_DENIED.message }
+        check(task.mentee.id == userId) { TASK_ACCESS_DENIED.message }
     }
 
     private fun validateHasFeedback(task: Task) {
