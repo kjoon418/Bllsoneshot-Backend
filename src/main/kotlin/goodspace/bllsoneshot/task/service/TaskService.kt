@@ -4,7 +4,6 @@ import goodspace.bllsoneshot.entity.assignment.*
 import goodspace.bllsoneshot.entity.user.User
 import goodspace.bllsoneshot.entity.user.UserRole
 import goodspace.bllsoneshot.global.exception.ExceptionMessage.*
-import goodspace.bllsoneshot.notification.service.NotificationService
 import goodspace.bllsoneshot.repository.file.FileRepository
 import goodspace.bllsoneshot.repository.task.TaskRepository
 import goodspace.bllsoneshot.repository.user.UserRepository
@@ -33,8 +32,7 @@ class TaskService(
     private val tasksMapper: TasksMapper,
     private val taskDetailMapper: TaskDetailMapper,
     private val taskFeedbackMapper: TaskFeedbackMapper,
-    private val taskSubmitMapper: TaskSubmitMapper,
-    private val notificationService: NotificationService
+    private val taskSubmitMapper: TaskSubmitMapper
 ) {
 
     @Transactional(readOnly = true)
@@ -148,37 +146,6 @@ class TaskService(
         createProofShotsAndQuestions(task, request.proofShots)
 
         taskRepository.save(task)
-
-        // 멘토에게 알림 전송
-        notifyMentorOnSubmit(task, request)
-    }
-
-    /**
-     * 멘티가 인증샷을 제출하면 멘토에게 알림을 보낸다.
-     * 질문이 포함되어 있으면 질문 알림도 별도로 보낸다.
-     */
-    private fun notifyMentorOnSubmit(task: Task, request: TaskSubmitRequest) {
-        val mentor = task.mentee.mentor ?: return
-        val menteeName = task.mentee.name
-
-        notificationService.notify(
-            receiver = mentor,
-            type = NotificationType.MENTEE_SUBMITTED,
-            title = "인증샷 제출",
-            message = "멘티 ${menteeName}이(가) '${task.name}' 인증샷을 제출했어요!",
-            task = task
-        )
-
-        val hasQuestions = request.proofShots.any { it.questions.isNotEmpty() }
-        if (hasQuestions) {
-            notificationService.notify(
-                receiver = mentor,
-                type = NotificationType.MENTEE_QUESTION,
-                title = "질문 등록",
-                message = "멘티 ${menteeName}이(가) '${task.name}'에 질문을 남겼어요!",
-                task = task
-            )
-        }
     }
 
     @Transactional

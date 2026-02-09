@@ -38,10 +38,15 @@ class Notification(
     val createdAt: LocalDateTime = LocalDateTime.now()
 ) : BaseEntity() {
 
+    /*
+    코틀린은 원래 상속X가 디폴트
+    1. final로 상속 안할거라고 명시 -> 프록시 못씀
+    2. open으로 상속할거라고 명시 + setter를 protected -> 프록시 가능
+    */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     var status: NotificationStatus = NotificationStatus.NEW
-        private set
+        protected set
 
     fun markAsChecked() {
         if (status == NotificationStatus.NEW) {

@@ -37,13 +37,10 @@ class NotificationController(
             UNREAD: 목록에서 확인했으나 클릭하지 않음
             READ: 알림을 클릭하여 읽음
             
-            [알림 타입]
-            REMINDER: 멘티 리마인더 (미완료 할일)
-            FEEDBACK: 멘토 피드백 도착
+            [알림 타입 (멘티 대상)]
+            REMINDER: 리마인더 (미완료 할일)
+            FEEDBACK: 피드백 도착
             LEARNING_REPORT: 학습 리포트 도착
-            MENTEE_SUBMITTED: 멘티 인증샷 제출
-            MENTEE_QUESTION: 멘티 질문 등록
-            MENTOR_REMINDER: 멘토 리마인더 (미피드백 할일)
             
             [응답]
             notificationId: 알림 ID
@@ -65,15 +62,15 @@ class NotificationController(
     @Operation(
         summary = "읽지 않은 알림 개수 조회",
         description = """
-            NEW + UNREAD 상태인 알림의 총 개수를 반환합니다.
+            NEW 상태인 알림의 총 개수를 반환합니다.
             알림 뱃지 표시 등에 활용됩니다.
             
             [응답]
-            count: 읽지 않은 알림 개수
+            count: NEW 상태인 알림의 개수
         """
     )
     fun getUnreadCount(principal: Principal): ResponseEntity<UnreadCountResponse> {
-        val response = notificationService.getUnreadCount(principal.userId)
+        val response = notificationService.getNewNotificationCount(principal.userId)
         return ResponseEntity.ok(response)
     }
 

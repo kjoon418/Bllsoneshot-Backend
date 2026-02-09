@@ -49,14 +49,14 @@ class NotificationService(
     }
 
     /**
-     * 읽지 않은 알림 개수 (NEW + UNREAD)를 반환한다.
+     * NEW 상태인 알림의 개수를 반환한다.
      * 프론트엔드 헤더의 알림 뱃지 등에 활용된다.
      */
     @Transactional(readOnly = true)
-    fun getUnreadCount(userId: Long): UnreadCountResponse {
-        val count = notificationRepository.countByReceiverIdAndStatusIn(
+    fun getNewNotificationCount(userId: Long): UnreadCountResponse {
+        val count = notificationRepository.countByReceiverIdAndStatus(
             receiverId = userId,
-            statuses = listOf(NotificationStatus.NEW, NotificationStatus.UNREAD)
+            status = NotificationStatus.NEW
         )
         return UnreadCountResponse(count = count)
     }

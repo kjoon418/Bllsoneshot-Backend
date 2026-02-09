@@ -10,7 +10,7 @@ interface NotificationRepository : JpaRepository<Notification, Long> {
 
     fun findByReceiverIdOrderByCreatedAtDesc(receiverId: Long): List<Notification>
 
-    fun countByReceiverIdAndStatusIn(receiverId: Long, statuses: List<NotificationStatus>): Long
+    fun countByReceiverIdAndStatus(receiverId: Long, status: NotificationStatus): Long
 
     // 알림 목록 조회 시 NEW 상태인 알림을 일괄 UNREAD로 전이
     @Modifying
