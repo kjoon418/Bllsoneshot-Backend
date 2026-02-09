@@ -231,11 +231,10 @@ class MentorTaskService(
     private fun createFeedbackComments(task: Task, request: MentorFeedbackRequest, status: RegisterStatus) {
         val proofShotMap = task.proofShots.associateBy { it.id!! }
 
-        for (psRequest in request.proofShotFeedbacks) {
-            val proofShot = proofShotMap[psRequest.proofShotId]
+        for (proofShotFeedback in request.proofShotFeedbacks) {
+            val proofShot = proofShotMap[proofShotFeedback.proofShotId]
                 ?: throw IllegalArgumentException(PROOF_SHOT_NOT_FOUND.message)
-
-            for ((index, feedback) in psRequest.feedbacks.withIndex()) {
+            for ((index, feedback) in proofShotFeedback.feedbacks.withIndex()) {
                 val annotation = CommentAnnotation(
                     number = index + 1,
                     percentX = feedback.percentX,

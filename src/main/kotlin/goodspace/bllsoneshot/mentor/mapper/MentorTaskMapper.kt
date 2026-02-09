@@ -36,6 +36,7 @@ class MentorTaskMapper(
             taskId = task.id!!,
             taskName = task.name,
             subject = task.subject,
+            mentorName = task.mentee.mentor!!.name,
             menteeName = task.mentee.name,
             generalComment = task.generalComment?.content,
             proofShots = task.proofShots.map { mapProofShot(it) }
@@ -51,6 +52,7 @@ class MentorTaskMapper(
             taskId = task.id!!,
             taskName = task.name,
             subject = task.subject,
+            mentorName = task.mentee.mentor!!.name,
             menteeName = task.mentee.name,
             generalComment = task.generalComment?.temporaryContent,
             proofShots = task.proofShots.map { mapTemporaryProofShot(it) }

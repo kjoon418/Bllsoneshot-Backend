@@ -31,9 +31,19 @@ class MentorTaskController(
             인증 사진, 멘티의 질문, 멘토의 최종 저장된 피드백을 반환합니다.
             임시저장된 피드백을 조회하려면 GET /{taskId}/feedback/temporary API를 사용하세요.
             
-            응답 필드:
-            generalComment: 멘토의 최종 저장된 총평 (아직 작성하지 않았을 경우 null)
-            proofShots.feedbacks: 최종 저장된(CONFIRMED) 피드백만 포함 (임시저장 제외)
+            [요청]
+            taskId: 할 일 ID
+            
+            [응답]
+            taskId: 할 일 ID
+            mentorName: 멘토 이름
+            taskName: 할 일 이름
+            menteeName: 멘티 이름
+            proofShots: 인증 사진 목록
+                proofShots.questions: 멘티의 질문 목록
+                proofShots.feedbacks: 최종 저장된(CONFIRMED) 피드백만 포함 (임시저장 제외)
+            generalComment: 멘토의 총평, 멘토가 아직 작성하지 않았을 경우 null
+            subject: 과목(안써도됨)
         """
     )
     fun getTaskDetail(
@@ -41,28 +51,6 @@ class MentorTaskController(
         principal: Principal
     ): ResponseEntity<MentorTaskDetailResponse> {
         val result = mentorTaskService.getTaskForFeedback(principal.userId, taskId)
-
-        return ResponseEntity.ok(result)
-    }
-
-    @GetMapping("/{taskId}/feedback/temporary")
-    @Operation(
-        summary = "멘토 피드백 임시저장 조회",
-        description = """
-            멘토가 임시저장한 피드백을 조회합니다.
-            TEMPORARY 상태의 총평(temporaryContent) 및 피드백만 반환됩니다.
-            최종 저장된(CONFIRMED) 피드백은 포함되지 않습니다.
-            
-            응답 필드:
-            generalComment: 임시저장된 총평 (temporaryContent)
-            proofShots.feedbacks: TEMPORARY 상태의 피드백만 포함
-        """
-    )
-    fun getTemporaryFeedback(
-        @PathVariable taskId: Long,
-        principal: Principal
-    ): ResponseEntity<MentorTaskDetailResponse> {
-        val result = mentorTaskService.getTemporaryFeedback(principal.userId, taskId)
 
         return ResponseEntity.ok(result)
     }
@@ -75,15 +63,17 @@ class MentorTaskController(
             프론트에서 자동 저장(debounce) 시 이 API를 호출해 주시면 됩니다.
             임시저장은 기존 최종 저장된(CONFIRMED) 피드백에 영향을 주지 않습니다.
             
-            임시저장은 검증이 느슨합니다:
-            - 총평이 비어 있어도 됩니다.
-            - 상세 피드백 내용이 비어 있어도 됩니다.
-            - 질문 답변이 비어 있어도 됩니다.
-            - 총평 최대 200자 제한만 적용됩니다.
-            
-            요청 필드:
-            generalComment: 멘토의 총평 (최대 200자, null 가능)
-            proofShotFeedbacks: 인증 사진별 피드백 목록
+            [요청]
+            taskId: 할 일 ID
+            generalComment: 멘토의 총평 (비어 있어도 됨, 최대 200자)
+            proofShotFeedbacks: 인증 사진별 피드백 목록 (비어 있어도 됨)
+                proofShotId: 인증 사진 ID
+            questionAnswers: 질문별 답변 목록
+                questionId: 질문 ID
+                content: 답변 내용 (비어 있어도 됨)
+                
+            [응답]
+            204 NO CONTENT
         """
     )
     fun saveTemporary(
@@ -96,6 +86,38 @@ class MentorTaskController(
         return NO_CONTENT
     }
 
+    @GetMapping("/{taskId}/feedback/temporary")
+    @Operation(
+        summary = "멘토 피드백 임시저장 조회",
+        description = """
+            멘토가 임시저장한 피드백을 조회합니다.
+            TEMPORARY 상태의 총평(temporaryContent) 및 피드백만 반환됩니다.
+            최종 저장된(CONFIRMED) 피드백은 포함되지 않습니다.
+            
+            [요청]
+            taskId: 할 일 ID
+            
+            [응답]
+            taskId: 할 일 ID
+            mentorName: 멘토 이름
+            taskName: 할 일 이름
+            menteeName: 멘티 이름
+            proofShots: 인증 사진 목록
+                proofShots.questions: 멘티의 질문 목록
+                proofShots.feedbacks: TEMPORARY 상태의 피드백만 포함
+            generalComment: 임시저장된 총평 (temporaryContent)
+            subject: 과목(안써도됨)
+        """
+    )
+    fun getTemporaryFeedback(
+        @PathVariable taskId: Long,
+        principal: Principal
+    ): ResponseEntity<MentorTaskDetailResponse> {
+        val result = mentorTaskService.getTemporaryFeedback(principal.userId, taskId)
+
+        return ResponseEntity.ok(result)
+    }
+
     @PutMapping("/{taskId}/feedback")
     @Operation(
         summary = "멘토 피드백 최종 저장(피드백 추가)",
@@ -106,16 +128,21 @@ class MentorTaskController(
             최종 저장 시:
             - 기존 최종 저장된(CONFIRMED) 피드백과 임시저장된(TEMPORARY) 피드백이 모두 제거됩니다.
             - 새로운 피드백이 CONFIRMED 상태로 저장됩니다.
-            - 모든 임시저장된 답변(temporaryContent)이 제거되고, 새로운 답변이 content에 저장됩니다.
+            - 모든 임시저장된 답변(temporaryContent)이 제거되고, 새로운 답변이 content에 저장됩니다. 
             
-            최종 저장은 검증이 엄격합니다:
-            - 총평은 필수이며 최대 200자입니다.
-            - 상세 피드백 내용이 비어 있으면 안 됩니다.
-            - 질문 답변 내용이 비어 있으면 안 됩니다.
-            
-            요청 필드:
+            [요청]
+            taskId: 할 일 ID
             generalComment: 멘토의 총평 (필수, 최대 200자)
             proofShotFeedbacks: 인증 사진별 피드백 목록
+                proofShotId: 인증 사진 ID
+                feedbacks: 상세 피드백 목록
+                    content: 피드백 내용 (필수)
+                    starred: 별표 여부
+                    percentX: 피드백 위치 X (0.0 ~ 100.0)
+                    percentY: 피드백 위치 Y (0.0 ~ 100.0)
+            questionAnswers: 질문별 답변 목록
+                questionId: 질문 ID
+                content: 답변 내용 (필수)
         """
     )
     fun saveFeedback(
@@ -137,6 +164,12 @@ class MentorTaskController(
             멘티의 질문은 삭제되지 않습니다.
             
             피드백이 없는 할 일에 대해 호출해도 에러 없이 정상 응답합니다.
+            
+            [요청]
+            taskId: 할 일 ID
+            
+            [응답]
+            204 NO CONTENT
         """
     )
     fun deleteFeedback(
