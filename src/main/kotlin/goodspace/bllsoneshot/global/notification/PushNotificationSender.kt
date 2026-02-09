@@ -1,4 +1,4 @@
-package goodspace.bllsoneshot.global.push
+package goodspace.bllsoneshot.global.notification
 
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.messaging.Message

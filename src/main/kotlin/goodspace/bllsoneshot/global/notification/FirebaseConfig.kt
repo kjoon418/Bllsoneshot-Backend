@@ -1,4 +1,4 @@
-package goodspace.bllsoneshot.global.push
+package goodspace.bllsoneshot.global.notification
 
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.firebase.FirebaseApp
