@@ -38,5 +38,6 @@ enum class ExceptionMessage(
     GENERAL_COMMENT_TOO_LONG("멘토의 총평은 200자를 초과할 수 없습니다."),
     GENERAL_COMMENT_REQUIRED("최종 저장 시 멘토의 총평은 필수입니다."),
     PROOF_SHOT_NOT_FOUND("해당 인증 사진을 찾을 수 없습니다."),
-    FEEDBACK_CONTENT_BLANK("피드백 내용이 비어 있습니다.")
+    FEEDBACK_CONTENT_BLANK("피드백 내용이 비어 있습니다."),
+    TASK_NOT_CREATED_BY_MENTOR("멘토가 등록한 할 일이 아닙니다.")
 }

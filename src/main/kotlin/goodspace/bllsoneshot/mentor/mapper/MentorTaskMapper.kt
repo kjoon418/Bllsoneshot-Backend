@@ -3,16 +3,33 @@ package goodspace.bllsoneshot.mentor.mapper
 import goodspace.bllsoneshot.entity.assignment.ProofShot
 import goodspace.bllsoneshot.entity.assignment.Task
 import goodspace.bllsoneshot.mentor.dto.response.MentorTaskDetailResponse
+import goodspace.bllsoneshot.mentor.dto.response.MentorTaskEditResponse
 import goodspace.bllsoneshot.task.dto.response.feedback.ProofShotResponse
+import goodspace.bllsoneshot.task.mapper.ColumnLinkMapper
 import goodspace.bllsoneshot.task.mapper.FeedbackMapper
 import goodspace.bllsoneshot.task.mapper.QuestionMapper
+import goodspace.bllsoneshot.task.mapper.WorksheetMapper
 import org.springframework.stereotype.Component
 
 @Component
 class MentorTaskMapper(
     private val questionMapper: QuestionMapper,
-    private val feedbackMapper: FeedbackMapper
+    private val feedbackMapper: FeedbackMapper,
+    private val worksheetMapper: WorksheetMapper,
+    private val columnLinkMapper: ColumnLinkMapper
 ) {
+
+    fun mapToEdit(task: Task): MentorTaskEditResponse {
+        return MentorTaskEditResponse(
+            subject = task.subject,
+            date = task.date,
+            taskName = task.name,
+            goalMinutes = task.goalMinutes,
+            completed = task.completed,
+            worksheets = task.worksheets.map { worksheetMapper.map(it) },
+            columnLinks = task.columnLinks.map { columnLinkMapper.map(it) }
+        )
+    }
 
     fun mapToDetail(task: Task): MentorTaskDetailResponse {
         return MentorTaskDetailResponse(
