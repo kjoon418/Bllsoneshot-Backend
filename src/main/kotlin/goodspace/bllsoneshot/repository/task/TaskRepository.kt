@@ -28,7 +28,6 @@ interface TaskRepository : JpaRepository<Task, Long> {
         SELECT t FROM Task t
         WHERE t.mentee.id = :userId
         AND t.date = :date
-        AND t.isResource = true
         """
     )
     fun findCurrentTasksIncludeResource(userId: Long, date: LocalDate): List<Task>
