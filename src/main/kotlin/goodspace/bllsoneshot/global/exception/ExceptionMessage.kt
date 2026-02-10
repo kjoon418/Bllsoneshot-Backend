@@ -41,5 +41,6 @@ enum class ExceptionMessage(
     FEEDBACK_CONTENT_BLANK("피드백 내용이 비어 있습니다."),
     TASK_NOT_CREATED_BY_MENTOR("멘토가 등록한 할 일이 아닙니다."),
     NOTIFICATION_NOT_FOUND("알림을 찾을 수 없습니다."),
-    NOTIFICATION_ACCESS_DENIED("해당 알림에 대한 권한이 없습니다.")
+    NOTIFICATION_ACCESS_DENIED("해당 알림에 대한 권한이 없습니다."),
+    UNANSWERED_QUESTION_EXISTS("답변하지 않은 멘티의 질문이 존재합니다.");
 }

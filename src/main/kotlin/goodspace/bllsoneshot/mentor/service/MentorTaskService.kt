@@ -58,7 +58,7 @@ class MentorTaskService(
     fun saveFeedback(mentorId: Long, taskId: Long, request: MentorFeedbackRequest) {
         val task = findTaskWithDetails(taskId)
         validateMentorAccess(mentorId, task)
-        validateFinalFeedbackRequest(request)
+        validateFinalFeedbackRequest(request, task)
 
         // 모든 데이터 제거 후 덮어쓰기
         task.clearFeedbackComments()
@@ -164,11 +164,18 @@ class MentorTaskService(
         }
     }
 
-    private fun validateFinalFeedbackRequest(request: MentorFeedbackRequest) {
+    private fun validateFinalFeedbackRequest(request: MentorFeedbackRequest, task: Task) {
         validateGeneralCommentLength(request.generalComment)
         require(!request.generalComment.isNullOrBlank()) {
             GENERAL_COMMENT_REQUIRED.message
         }
+
+        val requiredQuestionIds = task.questions.map { it.id!! }.toSet()
+        val answeredQuestionIds = request.questionAnswers.map { it.questionId }.toSet()
+        require(requiredQuestionIds.equals(answeredQuestionIds)) {
+            UNANSWERED_QUESTION_EXISTS.message
+        }
+
         request.proofShotFeedbacks
             .flatMap { it.feedbacks }
             .forEach { feedback ->
