@@ -4,6 +4,7 @@ import goodspace.bllsoneshot.entity.assignment.ProofShot
 import goodspace.bllsoneshot.entity.assignment.Task
 import goodspace.bllsoneshot.mentor.dto.response.MentorTaskDetailResponse
 import goodspace.bllsoneshot.mentor.dto.response.MentorTaskEditResponse
+import goodspace.bllsoneshot.mentor.dto.response.MentorTaskFormResponse
 import goodspace.bllsoneshot.task.dto.response.feedback.ProofShotResponse
 import goodspace.bllsoneshot.task.mapper.ColumnLinkMapper
 import goodspace.bllsoneshot.task.mapper.FeedbackMapper
@@ -18,6 +19,17 @@ class MentorTaskMapper(
     private val worksheetMapper: WorksheetMapper,
     private val columnLinkMapper: ColumnLinkMapper
 ) {
+
+    fun mapToForm(task: Task): MentorTaskFormResponse {
+        return MentorTaskFormResponse(
+            subject = task.subject,
+            dates = listOfNotNull(task.date),
+            taskNames = listOf(task.name),
+            goalMinutes = task.goalMinutes,
+            worksheets = task.worksheets.map { worksheetMapper.map(it) },
+            columnLinks = task.columnLinks.map { columnLinkMapper.map(it) }
+        )
+    }
 
     fun mapToEdit(task: Task): MentorTaskEditResponse {
         return MentorTaskEditResponse(

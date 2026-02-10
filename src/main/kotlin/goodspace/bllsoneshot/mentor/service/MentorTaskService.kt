@@ -8,6 +8,7 @@ import goodspace.bllsoneshot.mentor.dto.request.MentorTaskUpdateRequest
 import goodspace.bllsoneshot.mentor.dto.request.QuestionAnswerRequest
 import goodspace.bllsoneshot.mentor.dto.response.MentorTaskDetailResponse
 import goodspace.bllsoneshot.mentor.dto.response.MentorTaskEditResponse
+import goodspace.bllsoneshot.mentor.dto.response.MentorTaskFormResponse
 import goodspace.bllsoneshot.mentor.mapper.MentorTaskMapper
 import goodspace.bllsoneshot.notification.service.NotificationService
 import goodspace.bllsoneshot.repository.file.FileRepository
@@ -22,6 +23,14 @@ class MentorTaskService(
     private val mentorTaskMapper: MentorTaskMapper,
     private val notificationService: NotificationService
 ) {
+
+    @Transactional(readOnly = true)
+    fun getTaskForEdit(mentorId: Long, taskId: Long): MentorTaskFormResponse {
+        val task = findTaskWithDetails(taskId)
+        validateMentorAccess(mentorId, task)
+
+        return mentorTaskMapper.mapToForm(task)
+    }
 
     @Transactional(readOnly = true)
     fun getTaskForFeedback(mentorId: Long, taskId: Long): MentorTaskDetailResponse {
