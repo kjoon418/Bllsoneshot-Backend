@@ -14,5 +14,6 @@ data class TaskResponse(
     val readFeedback: Boolean,
     val hasFeedback: Boolean,
     val hasWorksheet: Boolean,
-    val hasProofShot: Boolean
+    val hasProofShot: Boolean,
+    val isResources: Boolean
 )
