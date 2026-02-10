@@ -4,10 +4,19 @@ import goodspace.bllsoneshot.entity.BaseEntity
 import goodspace.bllsoneshot.entity.user.User
 import goodspace.bllsoneshot.entity.user.UserRole
 import goodspace.bllsoneshot.global.exception.ExceptionMessage.NEGATIVE_ACTUAL_MINUTES
-import jakarta.persistence.*
-import org.hibernate.annotations.BatchSize
+import jakarta.persistence.CascadeType
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
+import jakarta.persistence.FetchType
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.ManyToOne
+import jakarta.persistence.OneToMany
+import jakarta.persistence.OneToOne
+import jakarta.persistence.Transient
 import java.time.LocalDate
-import java.time.LocalDateTime
+import org.hibernate.annotations.BatchSize
 
 @Entity
 class Task(
@@ -20,6 +29,8 @@ class Task(
     var subject: Subject,
 
     val date: LocalDate? = null,
+
+    val uploadedAt: LocalDate? = null,
 
     @Column(nullable = false)
     var name: String,

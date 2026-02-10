@@ -19,7 +19,8 @@ class ResourceMapper(
             resourceName = task.name,
             registeredDate = task.date ?: LocalDate.now(),
             worksheets = task.worksheets.map { worksheetMapper.map(it) },
-            columnLinks = task.columnLinks.map { columnLinkMapper.map(it) }
+            columnLinks = task.columnLinks.map { columnLinkMapper.map(it) },
+            uploadedAt = task.uploadedAt
         )
     }
 

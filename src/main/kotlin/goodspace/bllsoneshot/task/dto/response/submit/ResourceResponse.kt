@@ -11,5 +11,6 @@ data class ResourceResponse(
     val resourceName: String,
     val registeredDate: LocalDate,
     val worksheets: List<WorksheetResponse>,
-    val columnLinks: List<ColumnLinkResponse>
+    val columnLinks: List<ColumnLinkResponse>,
+    val uploadedAt: LocalDate?
 )

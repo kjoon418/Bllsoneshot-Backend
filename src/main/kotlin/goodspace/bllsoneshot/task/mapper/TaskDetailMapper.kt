@@ -30,6 +30,8 @@ class TaskDetailMapper(
             subject = task.subject,
             goalMinutes = task.goalMinutes,
             actualMinutes = task.actualMinutes,
+            isResource = task.isResource,
+            uploadedAt = task.uploadedAt,
             hasFeedback = task.hasFeedback(),
             generalComment = task.generalComment?.content,
             mentorName = task.mentee.mentor?.name ?: "",

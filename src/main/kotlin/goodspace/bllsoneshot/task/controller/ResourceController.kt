@@ -95,6 +95,7 @@ class ResourceController(
             resourceName: 자료 이름
             fileId: PDF 파일 ID (선택)
             columnLink: 칼럼 링크 (선택)
+            uploadedAt: 업로드 날자 (안넣으면 오늘)
             
             [응답]
             생성된 자료 정보

@@ -67,7 +67,8 @@ class ResourceService(
             name = request.resourceName,
             goalMinutes = 0,
             createdBy = UserRole.ROLE_MENTOR,
-            isResource = true
+            isResource = true,
+            uploadedAt = request.uploadedAt
         )
 
         request.fileId?.let { fileId ->
