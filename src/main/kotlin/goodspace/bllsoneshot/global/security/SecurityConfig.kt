@@ -43,7 +43,12 @@ class SecurityConfig(
     fun configurationSource(): CorsConfigurationSource {
         val config = CorsConfiguration().apply {
             // TODO: 웹 배포 후 웹의 origin으로 구체화
-            allowedOriginPatterns = listOf("*")
+            allowedOriginPatterns = listOf(
+                "http://localhost:5173",
+                "http://localhost:8080",
+                "https://frontend-three-inky-vo3s6yr68l.vercel.app/",
+                "https://bllsoneshot.xyz"
+            )
             allowedMethods = listOf("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
             allowedHeaders = listOf("*")
             exposedHeaders = listOf("Access-Control-Allow-Credentials", "Authorization", "Set-Cookie")
