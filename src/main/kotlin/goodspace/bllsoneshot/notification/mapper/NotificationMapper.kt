@@ -15,6 +15,8 @@ class NotificationMapper {
             message = notification.message,
             status = notification.status,
             taskId = notification.task?.id,
+            taskSubject = notification.task?.subject,
+            taskName = notification.task?.name,
             learningReportId = notification.learningReport?.id,
             learningReportStartDate = notification.learningReport?.startDate,
             learningReportEndDate = notification.learningReport?.endDate,
