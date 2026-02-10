@@ -63,6 +63,10 @@ class Comment(
     val isRead: Boolean
         get() = readByMentee
 
+    @get:Transient
+    val hasAnswer: Boolean
+        get() = answer?.content != null
+
     fun markAsRead() {
         readByMentee = true
     }

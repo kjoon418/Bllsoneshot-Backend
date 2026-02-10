@@ -69,8 +69,11 @@ class Task(
     fun hasProofShot(): Boolean =
         proofShots.isNotEmpty()
 
-    fun hasFeedback(): Boolean =
-        proofShots.any { it.hasFeedback() }
+    fun hasFeedback(): Boolean {
+        return proofShots.any { it.hasFeedback() }
+                || generalComment?.content != null
+                || hasAnswer()
+    }
 
     fun hasReadAllFeedbacks(): Boolean {
         if (!hasFeedback()) return false
@@ -98,6 +101,9 @@ class Task(
     fun clearTemporaryAnswers() {
         proofShots.forEach { it.clearTemporaryAnswers() }
     }
+
+    private fun hasAnswer(): Boolean =
+        questions.any { it.hasAnswer }
 
     companion object {
         private const val MINIMUM_ACTUAL_MINUTES = 0
