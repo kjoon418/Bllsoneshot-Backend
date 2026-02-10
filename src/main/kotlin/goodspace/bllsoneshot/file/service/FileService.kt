@@ -17,6 +17,7 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectRequest
 import software.amazon.awssdk.services.s3.model.GetObjectRequest
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
 import software.amazon.awssdk.services.s3.presigner.S3Presigner
+import java.net.URLEncoder
 import java.time.Duration
 import java.util.*
 
@@ -50,7 +51,7 @@ class FileService(
                     objectKey = uploaded.objectKey
                 )
             )
-            val url = makePresignedUrl(uploaded.objectKey)
+            val url = makePresignedUrl(uploaded.objectKey, uploaded.fileName)
             return FileUploadResponse(savedFile.id!!, url, savedFile.fileName, savedFile.contentType)
         } catch (e: Exception) {
             deleteFromS3(uploaded.objectKey)
@@ -73,11 +74,12 @@ class FileService(
         val file = fileRepository.findById(fileId)
             .orElseThrow { IllegalArgumentException("파일을 찾을 수 없습니다") }
 
-        val presignedUrl = makePresignedUrl(file.objectKey)
+        val presignedUrl = makePresignedUrl(file.objectKey, file.fileName)
 
         return FileDownloadResponse(
             fileId = fileId,
-            url = presignedUrl
+            url = presignedUrl,
+            fileName = file.fileName
         )
     }
 
@@ -161,11 +163,13 @@ class FileService(
         }
     }
 
-    private fun makePresignedUrl(objectKey: String): String {
+    private fun makePresignedUrl(objectKey: String, fileName: String): String {
+        val disposition = buildContentDisposition(fileName)
+
         val request = GetObjectRequest.builder()
             .bucket(bucket)
             .key(objectKey)
-            .responseContentDisposition("attachment")
+            .responseContentDisposition(disposition)
             .build()
 
         val presigned = s3Presigner.presignGetObject {
@@ -174,6 +178,23 @@ class FileService(
         }
 
         return presigned.url().toString()
+    }
+
+    /**
+     * RFC 6266 / RFC 5987에 맞는 Content-Disposition 헤더 값을 생성한다.
+     *
+     * - filename : ASCII 전용 폴백으로, 비ASCII 문자를 '_'로 대체하여 구형 브라우저를 지원한다.
+     * - filename* : UTF-8 퍼센트 인코딩된 원본 파일명으로, 한글 등 비ASCII 파일명을 정확히 표현한다.
+     */
+    private fun buildContentDisposition(fileName: String): String {
+        val utf8Encoded = URLEncoder.encode(fileName, Charsets.UTF_8)
+            .replace("+", "%20")
+
+        val asciiFallback = fileName
+            .replace(Regex("[^\\x20-\\x7E]"), "_")
+            .replace("\"", "_")
+
+        return "attachment; filename=\"$asciiFallback\"; filename*=UTF-8''$utf8Encoded"
     }
 }
 
