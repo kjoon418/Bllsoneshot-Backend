@@ -13,6 +13,7 @@ import goodspace.bllsoneshot.task.dto.response.task.TaskDetailResponse
 import goodspace.bllsoneshot.task.dto.response.task.TaskResponse
 import goodspace.bllsoneshot.task.dto.response.task.TasksResponse
 import goodspace.bllsoneshot.task.dto.response.feedback.TaskFeedbackResponse
+import goodspace.bllsoneshot.mentor.dto.response.MentorTaskFormResponse
 import goodspace.bllsoneshot.task.dto.response.submit.TaskSubmitResponse
 import goodspace.bllsoneshot.task.dto.response.task.TaskAmountResponse
 import goodspace.bllsoneshot.task.service.TaskService
@@ -136,6 +137,40 @@ class TaskController(
         val userId = principal.userId
 
         val response = taskService.findTaskAmounts(userId, startDate, endDate)
+
+        return ResponseEntity.ok(response)
+    }
+
+    @GetMapping("/{taskId}/edit")
+    @Operation(
+        summary = "멘토 할 일 수정 폼 조회",
+        description = """
+            멘토가 담당 멘티의 할 일 수정 화면에 필요한 정보를 조회합니다.
+            과목, 날짜, 할 일 이름, 목표 시간, 학습 자료(PDF·칼럼 링크)를 반환합니다.
+            
+            생성 시 dates × taskNames 조합으로 여러 Task가 만들어지므로,
+            수정 화면에서도 동일한 폼 구조(리스트)를 사용합니다.
+            단일 Task 조회 시에는 각각 원소가 1개인 리스트로 반환됩니다.
+            
+            [요청]
+            taskId: 할 일 ID (Path)
+            
+            [응답]
+            subject: 과목 (KOREAN, ENGLISH, MATH)
+            dates: 날짜 목록
+            taskNames: 할 일 이름 목록
+            goalMinutes: 목표 시간 (분)
+            worksheets: 학습 자료 PDF 파일 목록
+            columnLinks: 학습 자료 칼럼 링크 목록
+        """
+    )
+    fun getTaskForEdit(
+        principal: Principal,
+        @PathVariable taskId: Long
+    ): ResponseEntity<MentorTaskFormResponse> {
+        val userId = principal.userId
+
+        val response = taskService.getTaskForEdit(userId, taskId)
 
         return ResponseEntity.ok(response)
     }

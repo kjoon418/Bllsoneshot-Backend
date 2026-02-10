@@ -15,6 +15,7 @@ import goodspace.bllsoneshot.task.dto.response.submit.TaskSubmitResponse
 import goodspace.bllsoneshot.task.dto.response.task.TasksResponse
 import goodspace.bllsoneshot.task.dto.response.task.TaskResponse
 import goodspace.bllsoneshot.task.dto.response.feedback.TaskFeedbackResponse
+import goodspace.bllsoneshot.mentor.dto.response.MentorTaskFormResponse
 import goodspace.bllsoneshot.task.mapper.TaskDetailMapper
 import goodspace.bllsoneshot.task.mapper.TaskFeedbackMapper
 import goodspace.bllsoneshot.task.mapper.TaskMapper
@@ -87,6 +88,16 @@ class TaskService(
         val tasks = taskRepository.findTaskAmountsByDateRange(userId, startDate, endDate)
 
         return taskMapper.mapToTaskAmounts(tasks)
+    }
+
+    @Transactional(readOnly = true)
+    fun getTaskForEdit(mentorId: Long, taskId: Long): MentorTaskFormResponse {
+        val task = taskRepository.findByIdWithMenteeAndGeneralCommentAndProofShots(taskId)
+            ?: throw IllegalArgumentException(TASK_NOT_FOUND.message)
+
+        validateMentorMenteeRelation(task.mentee, mentorId)
+
+        return taskDetailMapper.mapToForm(task)
     }
 
     @Transactional
