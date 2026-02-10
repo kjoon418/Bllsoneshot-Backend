@@ -108,7 +108,7 @@ class ReportController(
 
     @GetMapping("mentee/me/subjects/{subject}")
     @Operation(
-        summary = "학습 리포트 조회(멘티)",
+        summary = "날짜/과목 기반 학습 리포트 조회(멘티)",
         description = """
             멘토가 본인(멘티)에게 작성해준 학습 리포트를 조회합니다.
             과목과 날짜에 해당하는 학습 리포트를 조회합니다.
@@ -134,6 +134,41 @@ class ReportController(
         val menteeId = principal.userId
 
         val response = reportService.getReceivedReport(menteeId, subject, date)
+
+        return ResponseEntity.ok(response)
+    }
+
+    @GetMapping("/{reportId}")
+    @Operation(
+        summary = "ID 기반 학습 리포트 조회(멘티)",
+        description = """
+            멘토가 본인(멘티)에게 작성해준 학습 리포트를 조회합니다.
+            식별자에 해당하는 학습 리포트를 조회합니다.
+            
+            [요청]
+            reportId: 학습 리포트 식별자
+            
+            [응답]
+            taskAmount: 전체 과제 수
+            completedTaskAmount: 완료한 과제 수
+            goalMinutesTotal: 목표 학습 시간(분)
+            actualMinutesTotal: 실제 학습 시간(분)
+            report: 리포트 정보
+                - subject: 과목(KOREAN, ENGLISH, MATH)
+                - startDate: 리포트 시작일
+                - endDate: 리포트 종료일
+                - generalComment: 총평
+                - goodPoints: 잘한 점 목록
+                - badPoints: 보완할 점 목록
+        """
+    )
+    fun getReceivedReportById(
+        principal: Principal,
+        @PathVariable reportId: Long,
+    ): ResponseEntity<ReportTaskResponse> {
+        val menteeId = principal.userId
+
+        val response = reportService.getReceivedReportById(menteeId, reportId)
 
         return ResponseEntity.ok(response)
     }

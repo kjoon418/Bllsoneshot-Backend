@@ -112,6 +112,26 @@ class ReportService(
         return reportTaskMapper.map(report, tasks)
     }
 
+    @Transactional(readOnly = true)
+    fun getReceivedReportById(
+        menteeId: Long,
+        reportId: Long
+    ): ReportTaskResponse {
+        val report = learningReportRepository.findById(reportId)
+            .orElseThrow { IllegalArgumentException(ExceptionMessage.REPORT_NOT_FOUND.message) }
+
+        validateReportOwnership(report, menteeId)
+
+        val tasks = taskRepository.findDateBetweenTasks(
+            menteeId = menteeId,
+            subject = report.subject,
+            startDate = report.startDate,
+            endDate = report.endDate
+        )
+
+        return reportTaskMapper.map(report, tasks)
+    }
+
     private fun findUserBy(userId: Long): User {
         return userRepository.findById(userId)
             .orElseThrow { IllegalArgumentException(ExceptionMessage.USER_NOT_FOUND.message) }
@@ -122,6 +142,10 @@ class ReportService(
         mentee: User
     ) {
         check(mentee.mentor?.id == mentorId) { ExceptionMessage.MENTEE_ACCESS_DENIED.message }
+    }
+
+    private fun validateReportOwnership(report: LearningReport, menteeId: Long) {
+        check(report.mentee.id == menteeId) { ExceptionMessage.MENTEE_ACCESS_DENIED.message }
     }
 
     private fun validateReportDuplicate(
