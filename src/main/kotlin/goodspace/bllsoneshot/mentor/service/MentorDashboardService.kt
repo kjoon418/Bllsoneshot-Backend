@@ -40,7 +40,7 @@ class MentorDashboardService(
     }
 
     @Transactional(readOnly = true)
-    fun getTaskUnfinishedMentees(
+    fun getTaskIncompletedMentees(
         mentorId: Long,
         date: LocalDate
     ): TaskUnfinishedSummaryResponse {
@@ -48,7 +48,7 @@ class MentorDashboardService(
             .orElseThrow { IllegalArgumentException(USER_NOT_FOUND.message) }
 
         val taskCount = taskRepository.countUnfinishedTasks(mentorId, date)
-        val mentees = taskRepository.findTaskUnfinishedMentees(
+        val mentees = taskRepository.findTaskIncompletedMentees(
             mentorId = mentorId,
             date = date
         )

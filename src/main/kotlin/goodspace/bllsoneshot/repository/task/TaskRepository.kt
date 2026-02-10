@@ -120,15 +120,14 @@ interface TaskRepository : JpaRepository<Task, Long> {
         )
         FROM Task t
         JOIN t.mentee m
-        LEFT JOIN t.proofShots ps
         WHERE m.mentor.id = :mentorId
         AND t.date = :date
         AND t.isResource = false
-        AND ps.id IS NULL
+        AND t.completed = false
         ORDER BY m.name
         """
     )
-    fun findTaskUnfinishedMentees(
+    fun findTaskIncompletedMentees(
         mentorId: Long,
         date: LocalDate
     ): List<PendingUploadMenteeResponse>
@@ -137,11 +136,10 @@ interface TaskRepository : JpaRepository<Task, Long> {
         """
         SELECT COUNT(DISTINCT t.id)
         FROM Task t
-        LEFT JOIN t.proofShots ps
         WHERE t.mentee.mentor.id = :mentorId
         AND t.date = :date
         AND t.isResource = false
-        AND ps.id IS NULL
+        AND t.completed = false
         """
     )
     fun countUnfinishedTasks(mentorId: Long, date: LocalDate): Long

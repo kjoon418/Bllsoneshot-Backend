@@ -54,7 +54,7 @@ class MentorDashboardController(
         summary = "학습 미이행(업로드 미제출) 멘티 전체 조회",
         description = """
             멘토가 담당하는 멘티 중,
-            오늘에 해당하는 과제는 존재하지만 인증 사진을 아직 업로드하지 않은 멘티를 조회합니다.
+            오늘에 해당하는 과제는 존재하지만 아직 완료하지 않은 멘티를 조회합니다.
             
             [요청]
             date: 기준 날짜(yyyy-MM-dd)
@@ -70,7 +70,7 @@ class MentorDashboardController(
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) date: LocalDate
     ): ResponseEntity<TaskUnfinishedSummaryResponse> {
         val mentorId = principal.userId
-        val response = mentorDashboardService.getTaskUnfinishedMentees(mentorId, date)
+        val response = mentorDashboardService.getTaskIncompletedMentees(mentorId, date)
         return ResponseEntity.ok(response)
     }
 
